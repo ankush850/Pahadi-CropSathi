@@ -6,7 +6,7 @@ AI-powered agricultural advisory chatbot for farmers and field supervisors.
 
 - React + Vite
 - Tailwind CSS
-- Express.js
+- python
 - MongoDB
 - Firebase Authentication
 - Gemini API
