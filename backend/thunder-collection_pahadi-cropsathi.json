@@ -1,0 +1,131 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "Pahadi CropSathi API",
+  "dateExported": "2026-06-28T00:00:00.000Z",
+  "version": "1.0",
+  "folders": [],
+  "requests": [
+    {
+      "name": "Root",
+      "url": "http://localhost:8000/",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": "",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "Create Crop",
+      "url": "http://localhost:8000/api/crops/",
+      "method": "POST",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"name\": \"Rice\",\n  \"scientific_name\": \"Oryza sativa\",\n  \"category\": \"Cereal\",\n  \"description\": \"A staple grain crop\",\n  \"planting_season\": \"Summer\",\n  \"harvest_season\": \"Autumn\",\n  \"water_requirement\": \"High\",\n  \"soil_type\": \"Clay\"\n}",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "List Crops",
+      "url": "http://localhost:8000/api/crops/",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": "",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "Get Crop by ID",
+      "url": "http://localhost:8000/api/crops/{crop_id}",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": "",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "Update Crop",
+      "url": "http://localhost:8000/api/crops/{crop_id}",
+      "method": "PUT",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"description\": \"Updated description for rice crop\"\n}",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "Delete Crop",
+      "url": "http://localhost:8000/api/crops/{crop_id}",
+      "method": "DELETE",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": "",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    },
+    {
+      "name": "Search Crops",
+      "url": "http://localhost:8000/api/crops/search?name=rice",
+      "method": "GET",
+      "headers": [],
+      "body": {
+        "type": "none",
+        "raw": "",
+        "form": [],
+        "files": []
+      },
+      "auth": {
+        "type": "none"
+      },
+      "tests": []
+    }
+  ]
+}
