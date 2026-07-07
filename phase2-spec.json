@@ -1,0 +1,68 @@
+{
+  "version": "2.0.0",
+  "appName": "AgriVision AI",
+  "modules": {
+    "imageProcessing": {
+      "input": {
+        "type": "image/jpeg|png|webp",
+        "method": "drag-and-drop or file-selection",
+        "maxSize": "10MB"
+      },
+      "service": "Gemini Vision API (gemini-2.5-flash)",
+      "promptContext": "Agricultural analysis identifying plant name, diseases, pests, nutrient deficiencies, and soil type.",
+      "outputSchema": {
+        "plantName": "String",
+        "diseaseName": "String",
+        "confidence": "Number (0-1)",
+        "severity": "Number (0-100)",
+        "treatments": "Array<String>",
+        "pestsDetected": "Boolean",
+        "nutrientDeficiency": "Boolean",
+        "weedDetected": "Boolean",
+        "soilTypeRecommendation": "String",
+        "recommendedCrops": "Array<{name: String, suitability: String}>"
+      }
+    },
+    "weatherIntegration": {
+      "source": "Open-Meteo API",
+      "endpoint": "https://api.open-meteo.com/v1/forecast",
+      "parameters": [
+        "latitude",
+        "longitude",
+        "current=temperature_2m,relative_humidity_2m,precipitation,weather_code"
+      ],
+      "uiDisplay": [
+        "Temperature (°C)",
+        "Humidity (%)",
+        "Precipitation (mm)",
+        "Weather Condition Icon",
+        "Risk Alerts (Calculated based on thresholds)"
+      ]
+    },
+    "soilAndCrop": {
+      "source": "Gemini Analysis of Image Soil Context",
+      "features": [
+        "Soil Classification (e.g., Loamy, Clay)",
+        "Crop Recommendations based on Soil",
+        "Suitability Badges"
+      ]
+    },
+    "advancedFeatures": {
+      "status": "Placeholders / Low-fidelity Prototypes",
+      "components": [
+        { "id": "weather-forecast", "type": "AI Text Summary" },
+        { "id": "irrigation", "type": "Optimization Module" },
+        { "id": "market-demand", "type": "Prediction Chart" },
+        { "id": "finance", "type": "Dashboard Summary" },
+        { "id": "satellite", "type": "Greenness Index Viz" },
+        { "id": "risk", "type": "Prediction Badge" },
+        { "id": "security", "type": "Alert System" }
+      ]
+    }
+  },
+  "interactionFlow": {
+    "onLoad": "Initialize UI, Request Geolocation, Fetch Weather",
+    "onImageUpload": "Show Preview -> Send to Gemini -> Show Loading State -> Render Analysis Results",
+    "onError": "Display error message in relevant card, provide Retry button"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "AgriVision AI",
+  "description": "A comprehensive agricultural technology platform for plant disease identification, soil analysis, and crop recommendations.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
