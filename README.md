@@ -1,9 +1,17 @@
 <div align="center">
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/leaf.svg" width="80" height="80" alt="Logo" />
   <h1 align="center">🌾 Pahadi CropSathi (Agri AI)</h1>
   <p align="center">
     <strong>An Intelligent, Multi-Lingual Agricultural Assistant Platform</strong><br>
     Powered by Next.js, Google Gemini, Leaflet, and Prisma
   </p>
+
+  <div>
+    <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Prisma-3982CE?style=for-the-badge&logo=Prisma&logoColor=white" alt="Prisma" />
+    <img src="https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+    <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+  </div>
 </div>
 
 ---
@@ -16,13 +24,15 @@
 
 - **Frontend Framework:** Next.js 14+ (App Router), React, Tailwind CSS
 - **Database & ORM:** SQLite + Prisma ORM
-- **Maps & Geospatial:** Leaflet, Leaflet Geoman (Free & Open Source, replacing Mapbox)
+- **Authentication & Security:** JWT (JSON Web Tokens), bcrypt hashing, Zod Input Validation, Rate Limiting
+- **Maps & Geospatial:** Leaflet, Leaflet Geoman (Free & Open Source)
 - **Artificial Intelligence:** Google Gemini API (`@google/genai`) using `gemini-1.5-flash`
 
 ---
 
 ## ✨ Key Features
 
+- **🔐 Secure Authentication:** JWT-based login and registration system with password hashing and Zod input validation to ensure maximum security.
 - **🔬 AI Plant Analysis:** Upload plant images for instant disease detection, severity analysis, and actionable treatment recommendations.
 - **🗺️ Interactive Maps (Free Satellite Imagery):** Select and draw specific land areas using Leaflet Geoman to receive comprehensive analysis of soil quality, climate conditions, and agricultural potential.
 - **🌐 Multi-Language Support:** Seamlessly available in English, Hindi, Punjabi, Tamil, Telugu, and Marathi.
@@ -52,20 +62,23 @@ npm install
 ```
 
 ### 3. Environment Variables
-Create a `.env` file in the root directory and add your Google Gemini API key:
+Create a `.env` file in the root directory and configure your environment:
 ```env
 # Gemini API Key - Get from Google AI Studio (https://aistudio.google.com/)
 NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 
 # Local Database URL (Automatically managed by Prisma)
 DATABASE_URL="file:./dev.db"
+
+# JWT Secret for Authentication
+JWT_SECRET="your_secure_random_secret"
 ```
-*(Note: Mapbox is no longer required as the project now uses free Leaflet maps!)*
 
 ### 4. Initialize the Database
 Run the following command to push the database schema to your local SQLite file (`dev.db`):
 ```bash
 npx prisma db push
+npx prisma generate
 ```
 
 ### 5. Start the Development Server
@@ -73,15 +86,16 @@ npx prisma db push
 npm run dev
 ```
 
-Open your browser and navigate to `http://localhost:3000` to see the application running!
+Open your browser and navigate to `http://localhost:3000` to see the application running! You will be prompted to create an account and log in.
 
 ---
 
 ## 🏗️ Project Structure
 
-- `app/` - Next.js App Router files (`page.tsx`, `layout.tsx`, API routes).
-- `app/api/` - REST API endpoints connecting the frontend to the Prisma database.
-- `components/` - Reusable React components (ChatBot, LocationPanel, etc.).
+- `app/` - Next.js App Router files (`page.tsx`, `layout.tsx`, API routes, Authentication pages).
+- `app/api/` - REST API endpoints (Auth, Chat, Analysis, Region).
+- `components/` - Reusable React components (`RouteGuard`, `ChatBot`, `LocationPanel`, etc.).
+- `lib/` - Server-side logic including rate limiting, JWT verification, and Prisma Client.
 - `prisma/` - Database schema definition (`schema.prisma`).
 - `services/` - AI integration logic (`geminiService.ts`).
 - `types.ts` - TypeScript interfaces for strong typing across the app.
@@ -94,6 +108,9 @@ We welcome contributions! If you'd like to contribute, please fork the repositor
 
 ---
 
-## 📄 License
+## 📄 License & Author
+
+**Author:** Ankush Singh Rawat ([ankush850](https://github.com/ankush850))  
+**Email:** ankushsinghrawat154@gmail.com
 
 Developed and maintained by Ankush Singh Rawat. All rights reserved.
