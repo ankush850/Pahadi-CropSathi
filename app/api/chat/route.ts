@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import prisma from '../../../lib/prisma';
+import { verifyToken } from '../../../lib/auth';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const user = await verifyToken(req);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const chats = await prisma.chatMessage.findMany({
       orderBy: { createdAt: 'asc' }, // Ascending for chat history
@@ -13,7 +19,12 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const user = await verifyToken(req);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const data = await req.json();
 
@@ -31,7 +42,12 @@ export async function POST(req: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const user = await verifyToken(req);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await prisma.chatMessage.deleteMany({});
     return NextResponse.json({ success: true }, { status: 200 });

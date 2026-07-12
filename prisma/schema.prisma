@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model PlantAnalysis {
@@ -42,5 +43,12 @@ model ChatMessage {
   id        String   @id @default(uuid())
   role      String   // 'user' or 'model'
   text      String
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
   createdAt DateTime @default(now())
 }

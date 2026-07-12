@@ -1,5 +1,6 @@
 import '../src/index.css';
 import { Metadata } from 'next';
+import { RouteGuard } from '../components/RouteGuard';
 
 export const metadata: Metadata = {
   title: 'AgriVision AI',
@@ -18,7 +19,9 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.20.0/dist/leaflet-geoman.css" />
       </head>
       <body className="antialiased">
-        {children}
+        <RouteGuard>
+          {children}
+        </RouteGuard>
       </body>
     </html>
   );
