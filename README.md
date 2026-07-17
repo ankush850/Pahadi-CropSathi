@@ -65,7 +65,8 @@ npm install
 Create a `.env` file in the root directory and configure your environment:
 ```env
 # Gemini API Key - Get from Google AI Studio (https://aistudio.google.com/)
-NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+# This key is securely used server-side only in /api/ai routes
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Local Database URL (Automatically managed by Prisma)
 DATABASE_URL="file:./dev.db"
@@ -93,11 +94,12 @@ Open your browser and navigate to `http://localhost:3000` to see the application
 ## 🏗️ Project Structure
 
 - `app/` - Next.js App Router files (`page.tsx`, `layout.tsx`, API routes, Authentication pages).
-- `app/api/` - REST API endpoints (Auth, Chat, Analysis, Region).
+- `app/api/` - REST API endpoints (Auth, Region).
+- `app/api/ai/` - AI backend services (`/analyse`, `/chat`, `/summarise`).
 - `components/` - Reusable React components (`RouteGuard`, `ChatBot`, `LocationPanel`, etc.).
-- `lib/` - Server-side logic including rate limiting, JWT verification, and Prisma Client.
+- `lib/` - Server-side logic including rate limiting, JWT verification, Prisma Client, and `geminiServer.ts`.
 - `prisma/` - Database schema definition (`schema.prisma`).
-- `services/` - AI integration logic (`geminiService.ts`).
+- `services/` - Legacy client services.
 - `types.ts` - TypeScript interfaces for strong typing across the app.
 
 ---

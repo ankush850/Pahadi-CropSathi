@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, User, Bot, Loader2, Minus } from 'lucide-react';
 import { ChatMessage, PlantAnalysis, Language } from '../types';
-import { chatWithAgriBot } from '../services/geminiService';
 import ReactMarkdown from 'react-markdown';
 import { getTranslation } from '../utils/translations';
 import { AIInput } from './ui/ai-input';
+import { useToast } from './hooks/useToast';
 
 interface ChatBotProps {
   analysisContext: PlantAnalysis | null;
@@ -42,6 +42,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
     scrollToBottom();
   }, [messages, isOpen]);
 
+  const { addToast } = useToast();
+
   const handleSend = async (message: string) => {
     if (!message.trim()) return;
 
@@ -56,17 +58,29 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
     setIsTyping(true);
 
     try {
-      const responseText = await chatWithAgriBot(messages, message, lang, analysisContext || undefined);
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ history: messages, message, lang, context: analysisContext || undefined }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch response (${response.status})`);
+      }
+
+      const data = await response.json();
       
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'model',
-        text: responseText,
+        text: data.reply,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      addToast(error.message || "Something went wrong. Please try again.", "error");
     } finally {
       setIsTyping(false);
     }
