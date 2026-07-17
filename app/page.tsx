@@ -12,7 +12,8 @@ import { ChatBot } from '../components/ChatBot';
 import { Modal } from '../components/Modal';
 import { Market } from '../components/Market';
 import { Community } from '../components/Community';
-import { analyzePlantImage, generateFeatureReport } from '../services/geminiService';
+import { useToast } from '../components/hooks/useToast';
+import { ToastContainer } from '../components/ui/Toast';
 import { PlantAnalysis, FeaturePlaceholder, Language } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
@@ -31,6 +32,8 @@ export default function App() {
   const [selectedFeature, setSelectedFeature] = useState<FeaturePlaceholder | null>(null);
   const [featureReport, setFeatureReport] = useState<string>('');
   const [isFeatureLoading, setIsFeatureLoading] = useState(false);
+  
+  const { toasts, addToast, removeToast } = useToast();
 
   const t = (key: string) => getTranslation(lang, key);
 
@@ -41,11 +44,23 @@ export default function App() {
     setAnalysis(null);
 
     try {
-      const result = await analyzePlantImage(base64, lang);
+      const response = await fetch('/api/ai/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64, lang })
+      });
+      
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to analyze image');
+      }
+      
+      const result = await response.json();
       setAnalysis(result);
-    } catch (err) {
-      setError("Failed to analyze image. Please try again.");
+    } catch (err: any) {
+      setError(err.message || "Failed to analyze image. Please try again.");
       console.error(err);
+      addToast(err.message || "Failed to analyze image", "error");
     } finally {
       setIsLoading(false);
     }
@@ -69,10 +84,23 @@ export default function App() {
         soil: analysis?.soilTypeRecommendation,
         location: 'Current Location'
       };
-      const report = await generateFeatureReport(feature.id, context, lang);
+      
+      const response = await fetch('/api/ai/summarise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ featureId: feature.id, context, lang })
+      });
+      
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to generate report');
+      }
+      
+      const report = await response.json();
       setFeatureReport(report.content);
-    } catch (err) {
+    } catch (err: any) {
       setFeatureReport("Unable to generate report at this time. Please try again.");
+      addToast(err.message || "Unable to generate report", "error");
     } finally {
       setIsFeatureLoading(false);
     }
@@ -231,6 +259,9 @@ export default function App() {
 
       {/* Persistent ChatBot */}
       <ChatBot analysisContext={analysis} lang={lang} />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       {/* Feature Details Modal */}
       <Modal 
