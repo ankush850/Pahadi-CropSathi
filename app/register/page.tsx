@@ -12,6 +12,32 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const getPasswordStrength = (pass: string) => {
+    let score = 0;
+    if (pass.length > 5) score += 1;
+    if (pass.length > 8) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+    return score;
+  };
+
+  const strength = getPasswordStrength(password);
+  
+  const getStrengthColor = () => {
+    if (password.length === 0) return 'bg-gray-200';
+    if (strength <= 2) return 'bg-red-500';
+    if (strength === 3 || strength === 4) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+  
+  const getStrengthText = () => {
+    if (password.length === 0) return '';
+    if (strength <= 2) return 'Weak';
+    if (strength === 3 || strength === 4) return 'Medium';
+    return 'Strong';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -75,6 +101,16 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                 />
+                {password.length > 0 && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex gap-1 flex-1 mr-2">
+                      <div className={`h-1.5 w-full rounded-full ${strength >= 1 ? getStrengthColor() : 'bg-gray-200'}`}></div>
+                      <div className={`h-1.5 w-full rounded-full ${strength >= 3 ? getStrengthColor() : 'bg-gray-200'}`}></div>
+                      <div className={`h-1.5 w-full rounded-full ${strength >= 5 ? getStrengthColor() : 'bg-gray-200'}`}></div>
+                    </div>
+                    <span className="text-xs text-gray-500 w-12 text-right">{getStrengthText()}</span>
+                  </div>
+                )}
               </div>
             </div>
 

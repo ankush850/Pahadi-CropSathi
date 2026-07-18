@@ -58,9 +58,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
     setIsTyping(true);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ history: messages, message, lang, context: analysisContext || undefined }),
       });
 
