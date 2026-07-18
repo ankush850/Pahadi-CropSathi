@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "appName": "AgriVision AI",
+  "appName": "Pahadi CropSathi",
   "modules": {
     "imageProcessing": {
       "input": {

@@ -44,9 +44,13 @@ export default function App() {
     setAnalysis(null);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/ai/analyse', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ image: base64, lang })
       });
       
@@ -85,9 +89,13 @@ export default function App() {
         location: 'Current Location'
       };
       
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/ai/summarise', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({ featureId: feature.id, context, lang })
       });
       
