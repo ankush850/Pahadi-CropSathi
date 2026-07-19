@@ -22,7 +22,7 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
   // Region Analysis State
   const [analyzingRegion, setAnalyzingRegion] = useState(false);
   const [regionData, setRegionData] = useState<RegionAnalysis | null>(null);
-  const [selectedArea, setSelectedArea] = useState<any>(null);
+  const [selectedArea, setSelectedArea] = useState<turf.Feature<turf.Polygon | turf.MultiPolygon> | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -114,13 +114,15 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
         });
 
         // Event listeners for Geoman
-        map.on('pm:create', (e: any) => {
-          setSelectedArea(e.layer.toGeoJSON());
+        map.on('pm:create', (e: L.LeafletEvent) => {
+          const pmEvent = e as unknown as { layer: L.Polygon };
+          setSelectedArea(pmEvent.layer.toGeoJSON() as turf.Feature<turf.Polygon | turf.MultiPolygon>);
           setIsDrawing(false);
           
           // Listen for edits on this specific layer
-          e.layer.on('pm:update', (updateEvent: any) => {
-            setSelectedArea(updateEvent.layer.toGeoJSON());
+          pmEvent.layer.on('pm:update', (updateEvent: L.LeafletEvent) => {
+            const updatePmEvent = updateEvent as unknown as { layer: L.Polygon };
+            setSelectedArea(updatePmEvent.layer.toGeoJSON() as turf.Feature<turf.Polygon | turf.MultiPolygon>);
           });
         });
 
@@ -167,7 +169,7 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
       let coordinates: number[][] = [];
       
       // Handle Polygon or Rectangle GeoJSON
-      if (selectedArea.geometry.type === 'Polygon') {
+      if (selectedArea.geometry && selectedArea.geometry.type === 'Polygon') {
         coordinates = selectedArea.geometry.coordinates[0];
       }
       
@@ -210,8 +212,9 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
       mapInstanceRef.current.pm.disableDraw();
       
       // Remove all drawn shapes
-      mapInstanceRef.current.eachLayer((layer: any) => {
-        if (layer.pm && layer.pm._shape) {
+      mapInstanceRef.current.eachLayer((layer: L.Layer) => {
+        const pmLayer = layer as L.Layer & { pm?: { _shape?: string } };
+        if (pmLayer.pm && pmLayer.pm._shape) {
           mapInstanceRef.current?.removeLayer(layer);
         }
       });

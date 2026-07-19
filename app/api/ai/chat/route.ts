@@ -1,6 +1,18 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { verifyToken } from '../../../../lib/auth';
 import { chatResponse } from '../../../../lib/geminiServer';
+import { checkRateLimit } from '../../../../lib/rate-limit';
+import { z } from 'zod';
+
+const chatSchema = z.object({
+  history: z.array(z.object({
+    role: z.enum(['user', 'model']),
+    text: z.string()
+  })),
+  message: z.string().min(1),
+  lang: z.string().min(2),
+  context: z.any().optional()
+});
 
 export const maxDuration = 60; 
 
@@ -10,12 +22,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  try {
-    const { history, message, lang, context } = await req.json();
+  const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
+  if (!(await checkRateLimit(ip))) {
+    return NextResponse.json({ error: 'Too many requests, please try again later.' }, { status: 429 });
+  }
 
-    if (!message || !lang || !history) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+  try {
+    const body = await req.json();
+    const parsed = chatSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request payload format' }, { status: 400 });
     }
+
+    const { history, message, lang, context } = parsed.data;
 
     try {
       const result = await chatResponse(history, message, lang, context);
