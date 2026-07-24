@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, User, Bot, Loader2, Minus } from 'lucide-react';
+import { MessageCircle, User, Bot, Loader2, Minus, Trash2 } from 'lucide-react';
 import { ChatMessage, PlantAnalysis, Language } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { getTranslation } from '../utils/translations';
 import { AIInput } from './ui/ai-input';
 import { useToast } from './hooks/useToast';
+import { ConfirmDialog } from './ConfirmDialog';
 
 interface ChatBotProps {
   analysisContext: PlantAnalysis | null;
@@ -17,21 +18,44 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { addToast } = useToast();
 
-  // Initial Greeting based on Language
+  // Load chat history from backend on initial mount
   useEffect(() => {
-    const greeting = lang === 'en' ? 'Hello! I am your AI Crop Advisor.' : 
-                     lang === 'hi' ? 'नमस्ते! मैं आपका एआई फसल सलाहकार हूं।' :
-                     lang === 'pa' ? 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ ਏਆਈ ਫਸਲ ਸਲਾਹਕਾਰ ਹਾਂ।' :
-                     'Hello! Ask me anything.';
-    
-    setMessages([{ 
-      id: '1', 
-      role: 'model', 
-      text: greeting, 
-      timestamp: new Date() 
-    }]);
+    const loadChatHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/chat', {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setMessages(data);
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load chat history", e);
+      }
+
+      // Default greeting if no history exists
+      const greeting = lang === 'en' ? 'Hello! I am your AI Crop Advisor.' : 
+                       lang === 'hi' ? 'नमस्ते! मैं आपका एआई फसल सलाहकार हूं।' :
+                       lang === 'pa' ? 'ਸਤ ਸ੍ਰੀ ਅਕਾਲ! ਮੈਂ ਤੁਹਾਡਾ ਏਆਈ ਫਸਲ ਸਲਾਹਕਾਰ ਹਾਂ।' :
+                       'Hello! Ask me anything.';
+      
+      setMessages([{ 
+        id: '1', 
+        role: 'model', 
+        text: greeting, 
+        timestamp: new Date() 
+      }]);
+    };
+
+    loadChatHistory();
   }, [lang]);
 
   const scrollToBottom = () => {
@@ -40,9 +64,26 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isTyping]);
 
-  const { addToast } = useToast();
+  const handleClearHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/chat', {
+        method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (res.ok) {
+        const greeting = lang === 'en' ? 'Chat cleared! How can I help you today?' : 'Chat cleared!';
+        setMessages([{ id: Date.now().toString(), role: 'model', text: greeting, timestamp: new Date() }]);
+        addToast('Chat history cleared', 'success');
+      }
+    } catch (e) {
+      addToast('Failed to clear chat history', 'error');
+    } finally {
+      setShowClearConfirm(false);
+    }
+  };
 
   const handleSend = async (message: string) => {
     if (!message.trim()) return;
@@ -57,8 +98,19 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
     setMessages(prev => [...prev, userMsg]);
     setIsTyping(true);
 
+    const token = localStorage.getItem('token');
+
+    // Save user message to backend
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ role: 'user', text: message })
+    }).catch(console.error);
+
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 
@@ -81,7 +133,19 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
         text: data.reply,
         timestamp: new Date()
       };
+
       setMessages(prev => [...prev, botMsg]);
+
+      // Save bot response to backend
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ role: 'model', text: data.reply })
+      }).catch(console.error);
+
     } catch (error: any) {
       console.error(error);
       addToast(error.message || "Something went wrong. Please try again.", "error");
@@ -90,22 +154,21 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
     }
   };
 
-
-
   return (
     <>
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 p-4 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition-all duration-300 z-40 ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`fixed bottom-6 right-6 p-4 bg-green-600 text-white rounded-full shadow-xl hover:bg-green-700 hover:scale-105 transition-all duration-300 z-40 ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
+        aria-label="Open AI Advisor Chat"
       >
         <MessageCircle className="w-6 h-6" />
       </button>
 
       {/* Chat Window */}
-      <div className={`fixed bottom-6 right-6 w-96 max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl border border-cement-200 z-50 flex flex-col transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-10 pointer-events-none'}`}>
+      <div className={`fixed bottom-6 right-6 w-96 max-w-[calc(100vw-32px)] bg-white rounded-2xl shadow-2xl border border-cement-200 z-50 flex flex-col transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 translate-y-10 pointer-events-none'}`}>
         {/* Header */}
-        <div className="bg-green-600 p-4 rounded-t-2xl flex justify-between items-center">
+        <div className="bg-green-600 p-4 rounded-t-2xl flex justify-between items-center text-white">
           <div className="flex items-center gap-2">
             <img 
               src="./1000098217.png" 
@@ -113,16 +176,28 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
               className="w-7 h-7 rounded-lg bg-white/10 p-0.5"
             />
             <div>
-              <h3 className="font-bold text-white text-sm">{t('chatTitle')}</h3>
-              <p className="text-green-100 text-xs flex items-center gap-1">
+              <h3 className="font-bold text-sm leading-tight">{t('chatTitle')}</h3>
+              <p className="text-green-100 text-[10px] flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-green-300 rounded-full animate-pulse"></span>
                 {t('online')}
               </p>
             </div>
           </div>
-          <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white transition-colors">
-            <Minus className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={() => setShowClearConfirm(true)}
+              className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              title="Clear Chat History"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={() => setIsOpen(false)} 
+              className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -148,8 +223,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
           ))}
           {isTyping && (
             <div className="self-start flex gap-2 ml-8">
-               <div className="bg-white border border-cement-200 p-3 rounded-2xl rounded-tl-none shadow-sm">
+               <div className="bg-white border border-cement-200 p-3 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-1.5">
                  <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
+                 <span className="text-xs text-cement-500 font-medium">Thinking...</span>
                </div>
             </div>
           )}
@@ -167,6 +243,16 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
           />
         </div>
       </div>
+
+      {/* Clear Chat Confirmation */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="Clear Chat History"
+        message="Are you sure you want to clear all messages in this conversation?"
+        confirmLabel="Clear"
+        onConfirm={handleClearHistory}
+        onCancel={() => setShowClearConfirm(false)}
+      />
     </>
   );
 };

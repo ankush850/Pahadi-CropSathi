@@ -10,13 +10,14 @@ import { useRouter } from 'next/navigation';
 interface HeaderProps {
   currentLang: Language;
   onLangChange: (lang: Language) => void;
-  currentPage: 'dashboard' | 'market' | 'community';
-  onPageChange: (page: 'dashboard' | 'market' | 'community') => void;
+  currentPage: 'dashboard' | 'history' | 'market' | 'community';
+  onPageChange: (page: 'dashboard' | 'history' | 'market' | 'community') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, currentPage, onPageChange }) => {
   const router = useRouter();
   const [user, setUser] = useState<{ email: string } | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const languages: { code: Language; label: string }[] = [
     { code: 'en', label: 'English' },
@@ -76,20 +77,27 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
             <span className="text-xl font-bold text-cement-900 tracking-tight">{t('appTitle')}<span className="text-green-600">.AI</span></span>
           </div>
           
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-6">
             <button 
               onClick={() => onPageChange('dashboard')}
               className={`font-medium transition-colors ${
-                currentPage === 'dashboard' ? 'text-cement-900' : 'text-cement-500 hover:text-green-600'
+                currentPage === 'dashboard' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
               }`}
             >
               {t('dashboard')}
             </button>
-            <a href="#" className="text-cement-500 font-medium hover:text-green-600 transition-colors">{t('myCrops')}</a>
+            <button 
+              onClick={() => onPageChange('history')}
+              className={`font-medium transition-colors ${
+                currentPage === 'history' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
+              }`}
+            >
+              History
+            </button>
             <button 
               onClick={() => onPageChange('market')}
               className={`font-medium transition-colors ${
-                currentPage === 'market' ? 'text-cement-900' : 'text-cement-500 hover:text-green-600'
+                currentPage === 'market' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
               }`}
             >
               {t('market')}
@@ -97,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
             <button 
               onClick={() => onPageChange('community')}
               className={`font-medium transition-colors ${
-                currentPage === 'community' ? 'text-cement-900' : 'text-cement-500 hover:text-green-600'
+                currentPage === 'community' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
               }`}
             >
               {t('community')}
@@ -155,11 +163,50 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
               </div>
             </div>
 
-            <button className="md:hidden p-2 text-cement-600">
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-cement-600"
+            >
               <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-cement-100 py-3 space-y-2 animate-fade-in">
+            <button
+              onClick={() => { onPageChange('dashboard'); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'dashboard' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
+            >
+              {t('dashboard')}
+            </button>
+            <button
+              onClick={() => { onPageChange('history'); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'history' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
+            >
+              History
+            </button>
+            <button
+              onClick={() => { onPageChange('market'); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'market' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
+            >
+              {t('market')}
+            </button>
+            <button
+              onClick={() => { onPageChange('community'); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'community' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
+            >
+              {t('community')}
+            </button>
+            {user && (
+              <div className="pt-2 border-t border-cement-100 flex items-center justify-between px-3">
+                <span className="text-xs text-cement-500 truncate">{user.email}</span>
+                <button onClick={handleLogout} className="text-xs font-semibold text-red-600">Logout</button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </header>
   );

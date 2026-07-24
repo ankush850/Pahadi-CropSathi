@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const chats = await prisma.chatMessage.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: 'asc' }, // Ascending for chat history
     });
     return NextResponse.json(chats);
@@ -30,6 +31,7 @@ export async function POST(req: NextRequest) {
 
     const chat = await prisma.chatMessage.create({
       data: {
+        userId: user.id,
         role: data.role,
         text: data.text,
       },
@@ -49,7 +51,9 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    await prisma.chatMessage.deleteMany({});
+    await prisma.chatMessage.deleteMany({
+      where: { userId: user.id }
+    });
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Failed to clear chat history:", error);
