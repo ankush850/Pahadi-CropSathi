@@ -10,15 +10,16 @@ export async function GET(req: NextRequest) {
 
   try {
     const analyses = await prisma.plantAnalysis.findMany({
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     });
     
     // Parse JSON strings back to objects
     const formattedAnalyses = analyses.map(a => ({
       ...a,
-      treatments: JSON.parse(a.treatments),
+      treatments: JSON.parse(a.treatments || '[]'),
       detectedPests: a.detectedPests ? JSON.parse(a.detectedPests) : undefined,
-      recommendedCrops: JSON.parse(a.recommendedCrops),
+      recommendedCrops: JSON.parse(a.recommendedCrops || '[]'),
     }));
 
     return NextResponse.json(formattedAnalyses);
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest) {
 
     const analysis = await prisma.plantAnalysis.create({
       data: {
+        userId: user.id,
         plantName: data.plantName,
         diseaseName: data.diseaseName,
         confidence: data.confidence,
@@ -52,8 +54,8 @@ export async function POST(req: NextRequest) {
         deficiencyDetails: data.deficiencyDetails || null,
         weedDetected: data.weedDetected || false,
         yieldPrediction: data.yieldPrediction || null,
-        soilTypeRecommendation: data.soilTypeRecommendation,
-        soilExplanation: data.soilExplanation,
+        soilTypeRecommendation: data.soilTypeRecommendation || '',
+        soilExplanation: data.soilExplanation || '',
         recommendedCrops: JSON.stringify(data.recommendedCrops || []),
       },
     });

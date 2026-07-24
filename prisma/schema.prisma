@@ -9,6 +9,7 @@ datasource db {
 
 model PlantAnalysis {
   id                     String   @id @default(uuid())
+  userId                 String?
   plantName              String
   diseaseName            String
   confidence             Float
@@ -41,9 +42,38 @@ model RegionAnalysis {
 
 model ChatMessage {
   id        String   @id @default(uuid())
+  userId    String?
   role      String   // 'user' or 'model'
   text      String
   createdAt DateTime @default(now())
+}
+
+model CommunityPost {
+  id        String   @id @default(cuid())
+  userId    String?
+  author    String
+  location  String
+  title     String
+  content   String
+  category  String
+  tags      String   // JSON array string
+  likes     Int      @default(0)
+  comments  Int      @default(0)
+  isExpert  Boolean  @default(false)
+  image     String?
+  createdAt DateTime @default(now())
+}
+
+model MarketPrice {
+  id            String   @id @default(cuid())
+  name          String
+  category      String
+  currentPrice  Float
+  previousPrice Float
+  location      String
+  supplier      String
+  rating        Float    @default(4.0)
+  updatedAt     DateTime @default(now())
 }
 
 model User {

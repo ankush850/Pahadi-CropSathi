@@ -37,8 +37,15 @@ export async function POST(req: NextRequest) {
 
     const { history, message, lang, context } = parsed.data;
 
+    const formattedHistory = history.map((item, idx) => ({
+      id: idx.toString(),
+      role: item.role,
+      text: item.text,
+      timestamp: new Date()
+    }));
+
     try {
-      const result = await chatResponse(history, message, lang, context);
+      const result = await chatResponse(formattedHistory, message, lang as any, context);
       return NextResponse.json({ reply: result }, { status: 200 });
     } catch (apiError: any) {
       console.error("Gemini API Error in /api/ai/chat:", apiError);

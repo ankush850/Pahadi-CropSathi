@@ -1,10 +1,11 @@
 import '../src/index.css';
 import { Metadata } from 'next';
 import { RouteGuard } from '../components/RouteGuard';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 export const metadata: Metadata = {
-  title: 'AgriVision AI',
-  description: 'AI-powered agriculture platform',
+  title: 'Pahadi-CropSathi | AgriVision AI',
+  description: 'AI-powered crop health diagnostic & market intelligence platform for farmers',
 };
 
 export default function RootLayout({
@@ -19,9 +20,11 @@ export default function RootLayout({
         <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.20.0/dist/leaflet-geoman.css" />
       </head>
       <body className="antialiased">
-        <RouteGuard>
-          {children}
-        </RouteGuard>
+        <ErrorBoundary>
+          <RouteGuard>
+            {children}
+          </RouteGuard>
+        </ErrorBoundary>
       </body>
     </html>
   );

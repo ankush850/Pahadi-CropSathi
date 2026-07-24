@@ -22,7 +22,7 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
   // Region Analysis State
   const [analyzingRegion, setAnalyzingRegion] = useState(false);
   const [regionData, setRegionData] = useState<RegionAnalysis | null>(null);
-  const [selectedArea, setSelectedArea] = useState<turf.Feature<turf.Polygon | turf.MultiPolygon> | null>(null);
+  const [selectedArea, setSelectedArea] = useState<any>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -116,13 +116,13 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
         // Event listeners for Geoman
         map.on('pm:create', (e: L.LeafletEvent) => {
           const pmEvent = e as unknown as { layer: L.Polygon };
-          setSelectedArea(pmEvent.layer.toGeoJSON() as turf.Feature<turf.Polygon | turf.MultiPolygon>);
+          setSelectedArea(pmEvent.layer.toGeoJSON());
           setIsDrawing(false);
           
           // Listen for edits on this specific layer
           pmEvent.layer.on('pm:update', (updateEvent: L.LeafletEvent) => {
             const updatePmEvent = updateEvent as unknown as { layer: L.Polygon };
-            setSelectedArea(updatePmEvent.layer.toGeoJSON() as turf.Feature<turf.Polygon | turf.MultiPolygon>);
+            setSelectedArea(updatePmEvent.layer.toGeoJSON());
           });
         });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Header } from '../components/Header';
 import { ImageUpload } from '../components/ImageUpload';
 import { AnalysisResults } from '../components/AnalysisResults';
@@ -12,15 +12,16 @@ import { ChatBot } from '../components/ChatBot';
 import { Modal } from '../components/Modal';
 import { Market } from '../components/Market';
 import { Community } from '../components/Community';
+import { HistoryPanel } from '../components/HistoryPanel';
 import { useToast } from '../components/hooks/useToast';
 import { ToastContainer } from '../components/ui/Toast';
 import { PlantAnalysis, FeaturePlaceholder, Language } from '../types';
 import ReactMarkdown from 'react-markdown';
-import { FileDown, FileJson, FileText } from 'lucide-react';
+import { FileJson, FileText, RefreshCw } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'market' | 'community'>('dashboard');
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'history' | 'market' | 'community'>('dashboard');
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<PlantAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,9 +35,9 @@ export default function App() {
   
   const { toasts, addToast, removeToast } = useToast();
 
-  const t = (key: string) => getTranslation(lang, key);
+  const t = useCallback((key: string) => getTranslation(lang, key), [lang]);
 
-  const handleImageSelected = async (base64: string) => {
+  const handleImageSelected = useCallback(async (base64: string) => {
     setCurrentImage(base64);
     setIsLoading(true);
     setError(null);
@@ -60,6 +61,21 @@ export default function App() {
       
       const result = await response.json();
       setAnalysis(result);
+
+      // Automatically persist analysis to DB
+      fetch('/api/analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(result)
+      }).then(res => {
+        if (res.ok) {
+          addToast('Scan saved to history!', 'success');
+        }
+      }).catch(err => console.error("Failed to save analysis to history", err));
+
     } catch (err: any) {
       setError(err.message || "Failed to analyze image. Please try again.");
       console.error(err);
@@ -67,21 +83,20 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [lang, addToast]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setCurrentImage(null);
     setAnalysis(null);
     setError(null);
-  };
+  }, []);
 
-  const handleFeatureClick = async (feature: FeaturePlaceholder) => {
+  const handleFeatureClick = useCallback(async (feature: FeaturePlaceholder) => {
     setSelectedFeature(feature);
     setIsFeatureLoading(true);
     setFeatureReport('');
 
     try {
-      // Simulate/Generate report based on current analysis context
       const context = {
         plant: analysis?.plantName,
         soil: analysis?.soilTypeRecommendation,
@@ -111,16 +126,16 @@ export default function App() {
     } finally {
       setIsFeatureLoading(false);
     }
-  };
+  }, [analysis, lang, addToast]);
 
-  const handleExportJSON = () => {
+  const handleExportJSON = useCallback(() => {
     if (!selectedFeature || !featureReport) return;
     
     const data = {
       title: t(selectedFeature.name),
       date: new Date().toISOString(),
       content: featureReport,
-      brand: "AgriVision AI"
+      brand: "Pahadi-CropSathi | AgriVision AI"
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -131,14 +146,16 @@ export default function App() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+  }, [selectedFeature, featureReport, t]);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = useCallback(() => {
     window.print();
-  };
+  }, []);
 
-  const renderPage = () => {
+  const renderedContent = useMemo(() => {
     switch (currentPage) {
+      case 'history':
+        return <HistoryPanel lang={lang} />;
       case 'market':
         return <Market lang={lang} />;
       case 'community':
@@ -146,54 +163,60 @@ export default function App() {
       default:
         return (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top Grid: Upload/Preview + Weather/Results */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          
-          {/* Left Column: Input */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
-            <ImageUpload 
-              onImageSelected={handleImageSelected} 
-              isLoading={isLoading} 
-              currentImage={currentImage}
-              onClear={handleClear}
-              lang={lang}
-            />
-            
-            {/* Location Panel - Visible on Desktop here */}
-            <div className="hidden lg:block h-72">
-              <LocationPanel lang={lang} />
-            </div>
-          </div>
-
-          {/* Right Column: Results */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-             {/* Mobile Location - Only visible on small screens */}
-             <div className="lg:hidden h-72">
-              <LocationPanel lang={lang} />
-            </div>
-
-            <div className="flex-1 min-h-[400px]">
-              {error ? (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600 text-center">
-                  <p className="font-medium">{error}</p>
+            {/* Top Grid: Upload/Preview + Weather/Results */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+              
+              {/* Left Column: Input */}
+              <div className="lg:col-span-5 flex flex-col gap-6">
+                <ImageUpload 
+                  onImageSelected={handleImageSelected} 
+                  isLoading={isLoading} 
+                  currentImage={currentImage}
+                  onClear={handleClear}
+                  lang={lang}
+                />
+                
+                {/* Location Panel - Visible on Desktop here */}
+                <div className="hidden lg:block h-72">
+                  <LocationPanel lang={lang} />
                 </div>
-              ) : (
-                <AnalysisResults analysis={analysis} isLoading={isLoading} image={currentImage} lang={lang} />
-              )}
+              </div>
+
+              {/* Right Column: Results */}
+              <div className="lg:col-span-7 flex flex-col gap-6">
+                 {/* Mobile Location - Only visible on small screens */}
+                 <div className="lg:hidden h-72">
+                  <LocationPanel lang={lang} />
+                </div>
+
+                <div className="flex-1 min-h-[400px]">
+                  {error ? (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600 text-center flex flex-col items-center justify-center h-full">
+                      <p className="font-medium mb-3">{error}</p>
+                      <button
+                        onClick={handleClear}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Try Another Image
+                      </button>
+                    </div>
+                  ) : (
+                    <AnalysisResults analysis={analysis} isLoading={isLoading} image={currentImage} lang={lang} />
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* Bottom Section: Soil & Features */}
-        <div className="space-y-6 animate-fade-in-up">
-           <SoilCrops analysis={analysis} lang={lang} />
-           <FeatureGrid onFeatureClick={handleFeatureClick} lang={lang} />
-        </div>
-
+            {/* Bottom Section: Soil & Features */}
+            <div className="space-y-6 animate-fade-in-up">
+               <SoilCrops analysis={analysis} lang={lang} />
+               <FeatureGrid onFeatureClick={handleFeatureClick} lang={lang} />
+            </div>
           </main>
         );
     }
-  };
+  }, [currentPage, lang, handleImageSelected, isLoading, currentImage, handleClear, error, analysis, handleFeatureClick]);
 
   return (
     <div className="min-h-screen bg-cement-50 pb-20 font-sans text-cement-900">
@@ -221,7 +244,7 @@ export default function App() {
         onPageChange={setCurrentPage}
       />
 
-      {renderPage()}
+      {renderedContent}
 
       {/* Persistent ChatBot */}
       <ChatBot analysisContext={analysis} lang={lang} />
