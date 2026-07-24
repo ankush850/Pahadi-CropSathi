@@ -23,6 +23,21 @@
 
 ---
 
+## 📸 Application Screenshots
+
+<div align="center">
+  <img src="./assest/Screenshot.png" width="45%" alt="Dashboard" />
+  <img src="./assest/Screenshot%201.png" width="45%" alt="Feature Module" />
+  <br><br>
+  <img src="./assest/Screenshot%202.png" width="45%" alt="Plant Scanner" />
+  <img src="./assest/Screenshot%203.png" width="45%" alt="Crop Recommender" />
+  <br><br>
+  <img src="./assest/Screenshot%204.png" width="45%" alt="Arecanut Diagnostic" />
+  <img src="./assest/Screenshot%205.png" width="45%" alt="Weed Density Scanner" />
+</div>
+
+---
+
 ## 📐 System Architecture
 
 ```mermaid
@@ -165,6 +180,7 @@ Pahadi-CropSathi/
 │   │   └── recommendation/     # ML Crop Recommendation Endpoint
 │   ├── layout.tsx              # Root Layout with Navigation & Footer
 │   └── page.tsx                # Main Agricultural Intelligence Dashboard
+├── assest/                     # Application Interface Screenshots & Assets
 ├── components/                 # Reusable React Components
 │   ├── ArecanutDiagnostic.tsx  # Arecanut Palm Disease Diagnostic UI
 │   ├── CropDetectionScanner.tsx# Field Crop & Weed Density Scanner UI
