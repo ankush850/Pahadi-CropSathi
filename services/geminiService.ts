@@ -43,34 +43,24 @@ export const generateFeatureReport = async (featureId: string, context: { plant?
 
 export const analyzeRegion = async (lat: number, lon: number, lang: Language, areaData?: any): Promise<RegionAnalysis> => {
   try {
-    let analysisPrompt = `Analyze the agricultural potential for the coordinates ${lat}, ${lon} in ${lang} language.`;
-    
-    if (areaData) {
-      analysisPrompt += ` This is a selected land area for detailed agricultural analysis.`;
-    }
-    
-    analysisPrompt += ` Provide detailed analysis on: 1. Soil potential and characteristics for this specific region 2. Climate suitability for various crops 3. Water sources and irrigation potential 4. Overall agricultural rating with specific recommendations.`;
-
-    const response = await getGenAI().models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: {
-        parts: [
-          {
-            text: analysisPrompt
-          }
-        ]
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const response = await fetch('/api/ai/region', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: regionAnalysisSchema
-      }
+      body: JSON.stringify({ lat, lon, lang, areaData })
     });
 
-    const text = response.text;
-    if (!text) throw new Error("No response");
-    return JSON.parse(text) as RegionAnalysis;
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to analyze region');
+    }
+
+    return await response.json() as RegionAnalysis;
   } catch (error) {
     console.error("Region analysis error", error);
     throw error;
   }
-}
+};

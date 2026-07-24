@@ -6,6 +6,11 @@ const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 export async function checkRateLimit(ip: string): Promise<boolean> {
   const now = new Date();
   
+  // Allow unlimited requests in development mode or for localhost
+  if (process.env.NODE_ENV !== 'production' || ip === '127.0.0.1' || ip === '::1' || ip === 'localhost') {
+    return true;
+  }
+
   try {
     const record = await prisma.rateLimit.findUnique({
       where: { ip }

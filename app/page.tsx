@@ -7,7 +7,9 @@ import { AnalysisResults } from '../components/AnalysisResults';
 import dynamic from 'next/dynamic';
 const LocationPanel = dynamic(() => import('../components/LocationPanel').then(mod => mod.LocationPanel), { ssr: false });
 import { SoilCrops } from '../components/SoilCrops';
-import { FeatureGrid } from '../components/FeatureGrid';
+import { CropRecommender } from '../components/CropRecommender';
+import { ArecanutDiagnostic } from '../components/ArecanutDiagnostic';
+import { CropDetectionScanner } from '../components/CropDetectionScanner';
 import { ChatBot } from '../components/ChatBot';
 import { Modal } from '../components/Modal';
 import { Market } from '../components/Market';
@@ -163,55 +165,12 @@ export default function App() {
       default:
         return (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Top Grid: Upload/Preview + Weather/Results */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-              
-              {/* Left Column: Input */}
-              <div className="lg:col-span-5 flex flex-col gap-6">
-                <ImageUpload 
-                  onImageSelected={handleImageSelected} 
-                  isLoading={isLoading} 
-                  currentImage={currentImage}
-                  onClear={handleClear}
-                  lang={lang}
-                />
-                
-                {/* Location Panel - Visible on Desktop here */}
-                <div className="hidden lg:block h-72">
-                  <LocationPanel lang={lang} />
-                </div>
-              </div>
-
-              {/* Right Column: Results */}
-              <div className="lg:col-span-7 flex flex-col gap-6">
-                 {/* Mobile Location - Only visible on small screens */}
-                 <div className="lg:hidden h-72">
-                  <LocationPanel lang={lang} />
-                </div>
-
-                <div className="flex-1 min-h-[400px]">
-                  {error ? (
-                    <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-600 text-center flex flex-col items-center justify-center h-full">
-                      <p className="font-medium mb-3">{error}</p>
-                      <button
-                        onClick={handleClear}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5" />
-                        Try Another Image
-                      </button>
-                    </div>
-                  ) : (
-                    <AnalysisResults analysis={analysis} isLoading={isLoading} image={currentImage} lang={lang} />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Section: Soil & Features */}
+            {/* Main Section: Soil, Recommender, Arecanut & Field Weed Scanner */}
             <div className="space-y-6 animate-fade-in-up">
                <SoilCrops analysis={analysis} lang={lang} />
-               <FeatureGrid onFeatureClick={handleFeatureClick} lang={lang} />
+               <CropRecommender lang={lang} />
+               <ArecanutDiagnostic lang={lang} />
+               <CropDetectionScanner lang={lang} />
             </div>
           </main>
         );
