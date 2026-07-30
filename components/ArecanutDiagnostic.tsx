@@ -66,7 +66,7 @@ export const ArecanutDiagnostic: React.FC<ArecanutDiagnosticProps> = ({ lang }) 
       const data: DiagnosisResult = await response.json();
       setResult(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Arecanut diagnosis error:", err);
       setError(err.message || 'Analysis failed. Please try again.');
     } finally {
       setLoading(false);
@@ -115,9 +115,9 @@ export const ArecanutDiagnostic: React.FC<ArecanutDiagnosticProps> = ({ lang }) 
 
       {/* Quick Presets Bar */}
       <div className="mb-6">
-        <label className="block text-xs font-semibold text-cement-600 uppercase tracking-wider mb-2">
+        <span className="block text-xs font-semibold text-cement-600 uppercase tracking-wider mb-2">
           Quick Demo Diagnoses (Or Upload Palm Image Below):
-        </label>
+        </span>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => handleSelectPreset('Mahali_Koleroga')}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PlantAnalysis, Language } from '../types';
 import { getTranslation } from '../utils/translations';
 import { History, Trash2, Eye, Calendar, AlertCircle, CheckCircle, Sprout, Search } from 'lucide-react';
@@ -22,7 +22,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ lang }) => {
   const t = (key: string) => getTranslation(lang, key);
   const { addToast } = useToast();
 
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -36,17 +36,17 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ lang }) => {
       const data = await res.json();
       setHistory(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Failed to fetch analysis history:", err);
       setError(err.message || 'Error loading history');
       addToast(err.message || 'Error loading history', 'error');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [addToast]);
 
   useEffect(() => {
     fetchHistory();
-  }, []);
+  }, [fetchHistory]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteTargetId) return;

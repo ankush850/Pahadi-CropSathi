@@ -108,7 +108,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
       },
       body: JSON.stringify({ role: 'user', text: message })
-    }).catch(console.error);
+    }).catch(err => console.error("Failed to persist user chat message:", err));
 
     try {
       const response = await fetch('/api/ai/chat', {
@@ -144,10 +144,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({ analysisContext, lang }) => {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({ role: 'model', text: data.reply })
-      }).catch(console.error);
+      }).catch(err => console.error("Failed to persist bot chat message:", err));
 
     } catch (error: any) {
-      console.error(error);
+      console.error("ChatBot conversation error:", error);
       addToast(error.message || "Something went wrong. Please try again.", "error");
     } finally {
       setIsTyping(false);

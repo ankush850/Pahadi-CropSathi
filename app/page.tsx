@@ -80,7 +80,7 @@ export default function App() {
 
     } catch (err: any) {
       setError(err.message || "Failed to analyze image. Please try again.");
-      console.error(err);
+      console.error("Analysis execution error:", err);
       addToast(err.message || "Failed to analyze image", "error");
     } finally {
       setIsLoading(false);
@@ -175,7 +175,7 @@ export default function App() {
           </main>
         );
     }
-  }, [currentPage, lang, handleImageSelected, isLoading, currentImage, handleClear, error, analysis, handleFeatureClick]);
+  }, [currentPage, lang, analysis]);
 
   return (
     <div className="min-h-screen bg-cement-50 pb-20 font-sans text-cement-900">

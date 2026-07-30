@@ -169,8 +169,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
             </h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Nitrogen (N)</label>
+                <label htmlFor="rec-input-N" className="block text-xs font-medium text-cement-700 mb-1">Nitrogen (N)</label>
                 <input
+                  id="rec-input-N"
                   type="number"
                   name="N"
                   min="0"
@@ -182,8 +183,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Phosphorus (P)</label>
+                <label htmlFor="rec-input-P" className="block text-xs font-medium text-cement-700 mb-1">Phosphorus (P)</label>
                 <input
+                  id="rec-input-P"
                   type="number"
                   name="P"
                   min="0"
@@ -195,8 +197,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Potassium (K)</label>
+                <label htmlFor="rec-input-K" className="block text-xs font-medium text-cement-700 mb-1">Potassium (K)</label>
                 <input
+                  id="rec-input-K"
                   type="number"
                   name="K"
                   min="0"
@@ -218,8 +221,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Temperature (°C)</label>
+                <label htmlFor="rec-input-temp" className="block text-xs font-medium text-cement-700 mb-1">Temperature (°C)</label>
                 <input
+                  id="rec-input-temp"
                   type="number"
                   name="temperature"
                   step="0.1"
@@ -232,8 +236,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Humidity (%)</label>
+                <label htmlFor="rec-input-humidity" className="block text-xs font-medium text-cement-700 mb-1">Humidity (%)</label>
                 <input
+                  id="rec-input-humidity"
                   type="number"
                   name="humidity"
                   step="0.1"
@@ -246,8 +251,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Soil pH (0 - 14)</label>
+                <label htmlFor="rec-input-ph" className="block text-xs font-medium text-cement-700 mb-1">Soil pH (0 - 14)</label>
                 <input
+                  id="rec-input-ph"
                   type="number"
                   name="ph"
                   step="0.1"
@@ -260,8 +266,9 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-cement-700 mb-1">Annual Rainfall (mm)</label>
+                <label htmlFor="rec-input-rainfall" className="block text-xs font-medium text-cement-700 mb-1">Annual Rainfall (mm)</label>
                 <input
+                  id="rec-input-rainfall"
                   type="number"
                   name="rainfall"
                   step="0.1"

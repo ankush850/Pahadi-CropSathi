@@ -67,7 +67,7 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
       const data: CropDetectionResult = await response.json();
       setResult(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Crop & weed detection error:", err);
       setError(err.message || 'Field analysis failed. Please try again.');
     } finally {
       setLoading(false);
@@ -151,9 +151,9 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
 
       {/* Quick Demo Presets */}
       <div className="mb-6">
-        <label className="block text-xs font-semibold text-cement-600 uppercase tracking-wider mb-2">
+        <span className="block text-xs font-semibold text-cement-600 uppercase tracking-wider mb-2">
           Quick Field Demo Presets (Or Upload Field Photo Below):
-        </label>
+        </span>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => handleDemoPreset('sugarbeet')}

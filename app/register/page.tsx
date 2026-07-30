@@ -5,22 +5,22 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Leaf } from 'lucide-react';
 
+const getPasswordStrength = (pass: string) => {
+  let score = 0;
+  if (pass.length > 5) score += 1;
+  if (pass.length > 8) score += 1;
+  if (/[A-Z]/.test(pass)) score += 1;
+  if (/[0-9]/.test(pass)) score += 1;
+  if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+  return score;
+};
+
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const getPasswordStrength = (pass: string) => {
-    let score = 0;
-    if (pass.length > 5) score += 1;
-    if (pass.length > 8) score += 1;
-    if (/[A-Z]/.test(pass)) score += 1;
-    if (/[0-9]/.test(pass)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
-    return score;
-  };
 
   const strength = getPasswordStrength(password);
   
