@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../utils/translations';
 import { TrendingUp, DollarSign, BarChart3, Calendar, MapPin, Search, Filter, Star, AlertCircle, Bell, Check } from 'lucide-react';
@@ -21,6 +21,12 @@ interface MarketItem {
   updatedAt?: string;
 }
 
+const getPriceChange = (current: number, previous: number) => {
+  const change = current - previous;
+  const percentage = ((change / previous) * 100).toFixed(1);
+  return { change, percentage, isPositive: change >= 0 };
+};
+
 export const Market: React.FC<MarketProps> = ({ lang }) => {
   const [items, setItems] = useState<MarketItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +44,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
 
   const categories = ['All', 'Grains', 'Vegetables', 'Fruits', 'Cash Crops', 'Dairy & Natural'];
 
-  const fetchMarketData = async () => {
+  const fetchMarketData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -47,22 +53,16 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
       const data = await res.json();
       setItems(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Failed to fetch market data:", err);
       setError(err.message || 'Failed to load market data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     fetchMarketData();
-  }, [searchTerm, selectedCategory]);
-
-  const getPriceChange = (current: number, previous: number) => {
-    const change = current - previous;
-    const percentage = ((change / previous) * 100).toFixed(1);
-    return { change, percentage, isPositive: change >= 0 };
-  };
+  }, [fetchMarketData]);
 
   const handleSetAlert = (e: React.FormEvent) => {
     e.preventDefault();

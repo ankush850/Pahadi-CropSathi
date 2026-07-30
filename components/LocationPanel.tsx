@@ -155,7 +155,7 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
         const result = await analyzeRegion(coords.lat, coords.lon, lang);
         setRegionData(result);
       } catch (e) {
-        console.error(e);
+        console.error("Failed to analyze region by coordinates:", e);
       } finally {
         setAnalyzingRegion(false);
       }
@@ -193,7 +193,7 @@ export const LocationPanel: React.FC<LocationPanelProps> = ({ lang }) => {
         coordinates: `${centerLat.toFixed(4)}, ${centerLng.toFixed(4)}`
       });
     } catch (e) {
-      console.error(e);
+      console.error("Failed to analyze selected region area:", e);
     } finally {
       setAnalyzingRegion(false);
     }

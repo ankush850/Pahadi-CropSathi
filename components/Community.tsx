@@ -62,7 +62,7 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
       const data = await res.json();
       setPosts(data);
     } catch (err: any) {
-      console.error(err);
+      console.error("Failed to fetch community posts:", err);
       setError(err.message || 'Error loading posts');
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
           setCurrentUserId(data.user?.id || null);
         }
       } catch (e) {
-        console.error(e);
+        console.error("Failed to fetch user session in community:", e);
       }
     };
     fetchUser();
@@ -422,8 +422,9 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-cement-700 uppercase mb-1">Title *</label>
+            <label htmlFor="community-title" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Title *</label>
             <input
+              id="community-title"
               type="text"
               placeholder="e.g. Tips for pest control on mustard crop"
               value={title}
@@ -435,8 +436,9 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-cement-700 uppercase mb-1">Category</label>
+              <label htmlFor="community-category" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Category</label>
               <select
+                id="community-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white"
@@ -448,8 +450,9 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-cement-700 uppercase mb-1">Location</label>
+              <label htmlFor="community-location" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Location</label>
               <input
+                id="community-location"
                 type="text"
                 placeholder="e.g. Kangra, Himachal"
                 value={location}
@@ -460,8 +463,9 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-cement-700 uppercase mb-1">Content * (min 20 chars)</label>
+            <label htmlFor="community-content" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Content * (min 20 chars)</label>
             <textarea
+              id="community-content"
               rows={4}
               placeholder="Share your question, experience, or advice with the community..."
               value={content}
@@ -472,9 +476,10 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-cement-700 uppercase mb-1">Tags</label>
+            <label htmlFor="community-tags" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Tags</label>
             <div className="flex gap-2 mb-2">
               <input
+                id="community-tags"
                 type="text"
                 placeholder="Add tag and press Add"
                 value={tagInput}
