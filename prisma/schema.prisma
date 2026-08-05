@@ -129,3 +129,12 @@ model RateLimit {
   count     Int
   expiresAt DateTime
 }
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
