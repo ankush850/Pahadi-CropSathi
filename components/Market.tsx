@@ -82,7 +82,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-cement-900 mb-2 flex items-center gap-3">
           <BarChart3 className="w-8 h-8 text-green-600" />
-          {t('market')} Intelligence
+          {t('market')} {t('marketIntelligence')}
         </h1>
         <p className="text-cement-600">Real-time agricultural commodity prices and market trends across APMC mandis</p>
       </div>
@@ -95,7 +95,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
             <input
               type="text"
-              placeholder="Search commodities or mandi locations..."
+              placeholder={t('searchCommodities')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-cement-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 text-sm"
@@ -111,7 +111,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
               className="px-4 py-2 border border-cement-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 text-sm bg-white"
             >
               {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
+                <option key={category} value={category}>{t('cat_' + category)}</option>
               ))}
             </select>
           </div>
@@ -188,7 +188,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
                       <TrendingUp className={`w-3.5 h-3.5 ${
                         priceChange.isPositive ? 'text-green-600' : 'text-red-600 rotate-180'
                       }`} />
-                      {priceChange.isPositive ? '+' : ''}₹{Math.abs(priceChange.change)} ({priceChange.percentage}%) vs last week
+                      {priceChange.isPositive ? '+' : ''}₹{Math.abs(priceChange.change)} ({priceChange.percentage}%) {t('vsLastWeek')}
                     </div>
                   </div>
 
@@ -200,10 +200,10 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5 text-cement-400" />
-                      <span>Updated: Today</span>
+                      <span>{t('updatedToday')}</span>
                     </div>
                     <div className="text-cement-500 truncate">
-                      Supplier: <span className="text-cement-700 font-medium">{item.supplier}</span>
+                      {t('supplier')}: <span className="text-cement-700 font-medium">{item.supplier}</span>
                     </div>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
                     }}
                     className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs font-semibold shadow-sm"
                   >
-                    View Details & Set Alert
+                    {t('viewDetailsSetAlert')}
                   </button>
                 </div>
               </div>
@@ -230,20 +230,20 @@ export const Market: React.FC<MarketProps> = ({ lang }) => {
       <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-6">
         <h2 className="text-xl font-bold text-cement-900 mb-4 flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-green-600" />
-          Market Insights Summary
+          {t('marketSummaryTitle')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
             <div className="text-2xl font-bold text-green-700 mb-1">+4.2%</div>
-            <div className="text-xs text-green-600 font-medium">Average Price Increase (Fruits)</div>
+            <div className="text-xs text-green-600 font-medium">{t('avgPriceIncrease')}</div>
           </div>
           <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
-            <div className="text-2xl font-bold text-blue-700 mb-1">18 Mandis</div>
-            <div className="text-xs text-blue-600 font-medium">Hill Region Mandis Tracked</div>
+            <div className="text-2xl font-bold text-blue-700 mb-1">18 {t('mandis')}</div>
+            <div className="text-xs text-blue-600 font-medium">{t('hillMandisTracked')}</div>
           </div>
           <div className="text-center p-4 bg-amber-50 rounded-xl border border-amber-100">
             <div className="text-2xl font-bold text-amber-700 mb-1">99.4%</div>
-            <div className="text-xs text-amber-600 font-medium">Data Freshness Index</div>
+            <div className="text-xs text-amber-600 font-medium">{t('dataFreshnessIndex')}</div>
           </div>
         </div>
       </div>

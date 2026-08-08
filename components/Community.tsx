@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Language } from '../types';
+import { Language, Comment } from '../types';
 import { getTranslation } from '../utils/translations';
-import { Users, MessageCircle, ThumbsUp, Calendar, Tag, Search, Plus, Award, MapPin, Trash2, AlertCircle, X, Loader2 } from 'lucide-react';
+import { Users, MessageCircle, ThumbsUp, Calendar, Tag, Search, Plus, Award, MapPin, Trash2, AlertCircle, X, Loader2, Send } from 'lucide-react';
 import { Modal } from './Modal';
 import { ConfirmDialog } from './ConfirmDialog';
 import { useToast } from './hooks/useToast';
@@ -23,6 +23,7 @@ interface Post {
   comments: number;
   date: string;
   isExpert: boolean;
+  isLiked?: boolean;
   image?: string;
 }
 
@@ -50,6 +51,14 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
   // Delete State
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
+  // Comments Modal State
+  const [commentsModalPost, setCommentsModalPost] = useState<Post | null>(null);
+  const [commentsList, setCommentsList] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+
   const t = (key: string) => getTranslation(lang, key);
   const { addToast } = useToast();
 
@@ -57,7 +66,10 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/community');
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/community', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       if (!res.ok) throw new Error('Failed to load community discussions');
       const data = await res.json();
       setPosts(data);
@@ -156,12 +168,14 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
 
   const handleLike = async (postId: string) => {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`/api/community/${postId}`, {
         method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (res.ok) {
         const data = await res.json();
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: data.likes } : p));
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: data.likes, isLiked: data.isLiked } : p));
       }
     } catch (e) {
       console.error("Failed to like post", e);
@@ -187,6 +201,63 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
     }
   };
 
+  // Comments Handlers
+  const handleOpenComments = async (post: Post) => {
+    setCommentsModalPost(post);
+    setCommentsList([]);
+    setLoadingComments(true);
+    setCommentError(null);
+    try {
+      const res = await fetch(`/api/community/${post.id}/comments`);
+      if (res.ok) {
+        const data = await res.json();
+        setCommentsList(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
+      setCommentError('Error loading comments');
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentsModalPost || !newCommentText.trim()) return;
+
+    setSubmittingComment(true);
+    setCommentError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/community/${commentsModalPost.id}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ content: newCommentText })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to post comment');
+      }
+
+      const createdComment: Comment = await res.json();
+      setCommentsList(prev => [...prev, createdComment]);
+      setNewCommentText('');
+
+      // Update comment count on post
+      setPosts(prev => prev.map(p => p.id === commentsModalPost.id ? { ...p, comments: p.comments + 1 } : p));
+      setCommentsModalPost(prev => prev ? { ...prev, comments: prev.comments + 1 } : null);
+      addToast('Comment added!', 'success');
+    } catch (err: any) {
+      setCommentError(err.message || 'Failed to post comment');
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -198,78 +269,100 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-cement-900 mb-2 flex items-center gap-3">
-          <Users className="w-8 h-8 text-green-600" />
-          Farming {t('community')}
-        </h1>
-        <p className="text-cement-600">Connect, learn, and share knowledge with fellow farmers and experts</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-cement-900 mb-2 flex items-center gap-3">
+            <Users className="w-8 h-8 text-green-600" />
+            {t('community')}
+          </h1>
+          <p className="text-cement-600">Connect with fellow farmers, share experiences, and get expert advice</p>
+        </div>
+        
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold shadow-sm text-sm"
+        >
+          <Plus className="w-4 h-4" />
+          {t('newPost')}
+        </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-5 text-center">
-          <div className="text-2xl font-bold text-green-600 mb-1">12,543</div>
-          <div className="text-xs sm:text-sm text-cement-600">Active Farmers</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-5 text-center">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{posts.length}</div>
-          <div className="text-xs sm:text-sm text-cement-600">Discussions</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-5 text-center">
-          <div className="text-2xl font-bold text-amber-600 mb-1">156</div>
-          <div className="text-xs sm:text-sm text-cement-600">Experts</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-5 text-center">
-          <div className="text-2xl font-bold text-purple-600 mb-1">98%</div>
-          <div className="text-xs sm:text-sm text-cement-600">Satisfaction</div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Sidebar */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Create Post */}
-          <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-6">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              New Post
-            </button>
+      {/* Community Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white p-4 rounded-xl border border-cement-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-green-50 text-green-600 rounded-lg">
+            <Users className="w-6 h-6" />
           </div>
+          <div>
+            <div className="text-2xl font-bold text-cement-900">1,240+</div>
+            <div className="text-xs text-cement-500">{t('activeFarmers')}</div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-xl border border-cement-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <MessageCircle className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-cement-900">3,890+</div>
+            <div className="text-xs text-cement-500">{t('discussions')}</div>
+          </div>
+        </div>
 
-          {/* Categories */}
-          <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-6">
-            <h3 className="font-semibold text-cement-900 mb-4">Categories</h3>
-            <div className="flex lg:flex-col overflow-x-auto gap-2 pb-2 lg:pb-0 custom-scrollbar">
+        <div className="bg-white p-4 rounded-xl border border-cement-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
+            <Award className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-cement-900">45</div>
+            <div className="text-xs text-cement-500">{t('experts')}</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-xl border border-cement-200 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
+            <ThumbsUp className="w-6 h-6" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-cement-900">98%</div>
+            <div className="text-xs text-cement-500">{t('satisfaction')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Left Sidebar - Categories & Filters */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-4">
+            <h2 className="font-bold text-cement-900 text-sm uppercase tracking-wider mb-3 px-2">{t('categories')}</h2>
+            <div className="space-y-1">
               {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`text-left px-3 py-2 rounded-lg transition-colors whitespace-nowrap text-sm ${
-                    selectedCategory === cat
-                      ? 'bg-green-100 text-green-700 font-medium'
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${
+                    selectedCategory === cat 
+                      ? 'bg-green-50 text-green-700 font-semibold border-l-4 border-green-600' 
                       : 'text-cement-600 hover:bg-cement-50'
                   }`}
                 >
-                  {cat}
+                  <span>{t('cat_' + cat)}</span>
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
+        {/* Right Area - Posts List */}
         <div className="lg:col-span-3 space-y-6">
-          {/* Search */}
+          {/* Search Bar */}
           <div className="bg-white rounded-xl shadow-sm border border-cement-200 p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
               <input
                 type="text"
-                placeholder="Search discussions, topics, or tags..."
+                placeholder={t('searchDiscussions')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-cement-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 text-sm"
@@ -277,17 +370,14 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
             </div>
           </div>
 
-          {/* Loading Skeletons */}
+          {/* Loading Skeleton */}
           {isLoading && (
             <div className="space-y-4">
               {[1, 2, 3].map(n => (
-                <div key={n} className="bg-white rounded-xl p-6 border border-cement-200 animate-pulse space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-cement-200 rounded-full"></div>
-                    <div className="h-4 bg-cement-200 rounded w-1/3"></div>
-                  </div>
-                  <div className="h-5 bg-cement-200 rounded w-3/4"></div>
-                  <div className="h-12 bg-cement-100 rounded"></div>
+                <div key={n} className="bg-white rounded-xl p-6 border border-cement-200 animate-pulse space-y-3">
+                  <div className="h-4 bg-cement-200 rounded w-1/4"></div>
+                  <div className="h-6 bg-cement-300 rounded w-3/4"></div>
+                  <div className="h-16 bg-cement-100 rounded"></div>
                 </div>
               ))}
             </div>
@@ -295,50 +385,50 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
 
           {/* Error State */}
           {!isLoading && error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center text-red-600">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
-              <p className="font-medium">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center text-red-600">
+              <AlertCircle className="w-10 h-10 mx-auto mb-2 text-red-500" />
+              <p className="font-semibold">{error}</p>
               <button 
                 onClick={fetchPosts}
-                className="mt-3 px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold"
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700"
               >
-                Reload
+                Retry
               </button>
             </div>
           )}
 
           {/* Empty State */}
           {!isLoading && !error && filteredPosts.length === 0 && (
-            <div className="bg-white rounded-xl border border-cement-200 p-12 text-center">
-              <MessageCircle className="w-12 h-12 text-cement-300 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-cement-900 mb-1">No discussions found</h3>
-              <p className="text-cement-500 text-sm mb-4">Be the first to share your knowledge or ask a question!</p>
+            <div className="bg-white rounded-xl border border-cement-200 p-12 text-center text-cement-500">
+              <MessageCircle className="w-12 h-12 mx-auto mb-3 text-cement-300" />
+              <h3 className="text-lg font-bold text-cement-800 mb-1">{t('noDiscussions')}</h3>
+              <p className="text-xs max-w-sm mx-auto mb-4">Be the first to start a conversation in this category!</p>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700"
               >
-                Start a Discussion
+                {t('startDiscussion')}
               </button>
             </div>
           )}
 
           {/* Posts List */}
-          {!isLoading && !error && (
-            <div className="space-y-6">
+          {!isLoading && !error && filteredPosts.length > 0 && (
+            <div className="space-y-4">
               {filteredPosts.map(post => (
-                <div key={post.id} className="bg-white rounded-xl shadow-sm border border-cement-200 p-6 hover:shadow-md transition-shadow">
+                <div key={post.id} className="bg-white rounded-xl shadow-sm border border-cement-200 p-6 transition-all hover:shadow-md">
                   {/* Post Header */}
-                  <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">
-                        {post.author ? post.author.substring(0, 2).toUpperCase() : 'FA'}
+                      <div className="w-10 h-10 rounded-full bg-green-100 text-green-800 font-bold flex items-center justify-center text-sm border border-green-200">
+                        {post.author.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-cement-900 text-sm">{post.author}</h4>
                           {post.isExpert && (
                             <span className="bg-blue-100 text-blue-700 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Award className="w-3 h-3" /> Expert
+                              <Award className="w-3 h-3" /> {t('expert')}
                             </span>
                           )}
                         </div>
@@ -385,20 +475,31 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
                   {/* Footer / Actions */}
                   <div className="flex items-center justify-between pt-4 border-t border-cement-100 text-xs">
                     <div className="flex items-center gap-4">
+                      {/* 1 Like per User Button */}
                       <button 
                         onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-1.5 text-cement-600 hover:text-green-600 transition-colors font-medium"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors font-medium ${
+                          post.isLiked 
+                            ? 'bg-green-100 text-green-700 border border-green-300' 
+                            : 'text-cement-600 hover:bg-green-50 hover:text-green-600 border border-cement-200'
+                        }`}
+                        title={post.isLiked ? 'Liked (Click to remove like)' : 'Like this post (1 per user)'}
                       >
-                        <ThumbsUp className="w-4 h-4" />
+                        <ThumbsUp className={`w-4 h-4 ${post.isLiked ? 'fill-green-600 text-green-600' : ''}`} />
                         <span>{post.likes}</span>
                       </button>
-                      <span className="flex items-center gap-1.5 text-cement-500">
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{post.comments} comments</span>
-                      </span>
+
+                      {/* Multiple Comments Button / Drawer Opener */}
+                      <button 
+                        onClick={() => handleOpenComments(post)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-cement-600 hover:bg-blue-50 hover:text-blue-600 border border-cement-200 transition-colors font-medium"
+                      >
+                        <MessageCircle className="w-4 h-4 text-blue-500" />
+                        <span>{post.comments} {t('comments')}</span>
+                      </button>
                     </div>
                     <span className="bg-green-50 text-green-700 font-medium px-2.5 py-1 rounded-full text-xs">
-                      {post.category}
+                      {t('cat_' + post.category)}
                     </span>
                   </div>
                 </div>
@@ -441,10 +542,10 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
                 id="community-category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 bg-white"
+                className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm bg-white"
               >
-                {categories.filter(c => c !== 'All').map(c => (
-                  <option key={c} value={c}>{c}</option>
+                {categories.filter(c => c !== 'All').map(cat => (
+                  <option key={cat} value={cat}>{t('cat_' + cat)}</option>
                 ))}
               </select>
             </div>
@@ -454,20 +555,20 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
               <input
                 id="community-location"
                 type="text"
-                placeholder="e.g. Kangra, Himachal"
+                placeholder="e.g. Dehradun / Solan"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="community-content" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Content * (min 20 chars)</label>
+            <label htmlFor="community-content" className="block text-xs font-semibold text-cement-700 uppercase mb-1">Discussion Details *</label>
             <textarea
               id="community-content"
               rows={4}
-              placeholder="Share your question, experience, or advice with the community..."
+              placeholder="Describe your question, observation, or farming tip in detail..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full px-3 py-2 border border-cement-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
@@ -525,6 +626,78 @@ export const Community: React.FC<CommunityProps> = ({ lang }) => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Multiple Comments Modal */}
+      <Modal
+        isOpen={!!commentsModalPost}
+        onClose={() => setCommentsModalPost(null)}
+        title={commentsModalPost ? `Comments on "${commentsModalPost.title}"` : 'Comments'}
+      >
+        {commentsModalPost && (
+          <div className="space-y-4">
+            {/* Post Summary Box */}
+            <div className="p-3 bg-cement-50 border border-cement-200 rounded-xl text-xs text-cement-700">
+              <p className="font-semibold text-cement-900 mb-1">{commentsModalPost.author} ({commentsModalPost.location}):</p>
+              <p className="line-clamp-2">{commentsModalPost.content}</p>
+            </div>
+
+            {/* Comments List Container */}
+            <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
+              {loadingComments ? (
+                <div className="py-8 text-center text-xs text-cement-500 flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-green-600" />
+                  Loading discussion comments...
+                </div>
+              ) : commentsList.length === 0 ? (
+                <div className="py-8 text-center text-xs text-cement-400 bg-cement-50 rounded-xl border border-dashed border-cement-200">
+                  No comments yet. Start the conversation!
+                </div>
+              ) : (
+                commentsList.map(c => (
+                  <div key={c.id} className="p-3 bg-white border border-cement-200 rounded-xl shadow-2xs space-y-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-cement-900 flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold flex items-center justify-center">
+                          {c.author.slice(0, 1).toUpperCase()}
+                        </div>
+                        {c.author}
+                      </span>
+                      <span className="text-[10px] text-cement-400">{c.date}</span>
+                    </div>
+                    <p className="text-xs text-cement-700 pl-6 whitespace-pre-line leading-relaxed">{c.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {commentError && (
+              <div className="p-2 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">
+                {commentError}
+              </div>
+            )}
+
+            {/* Add New Comment Form */}
+            <form onSubmit={handleAddComment} className="flex gap-2 pt-3 border-t border-cement-100">
+              <input
+                type="text"
+                placeholder="Write your comment..."
+                value={newCommentText}
+                onChange={(e) => setNewCommentText(e.target.value)}
+                className="flex-1 px-3 py-2 border border-cement-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                required
+              />
+              <button
+                type="submit"
+                disabled={submittingComment || !newCommentText.trim()}
+                className="px-4 py-2 bg-green-600 text-white rounded-xl text-xs font-semibold hover:bg-green-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {submittingComment ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                Post
+              </button>
+            </form>
+          </div>
+        )}
       </Modal>
 
       {/* Confirm Delete */}

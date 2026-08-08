@@ -50,19 +50,44 @@ model ChatMessage {
 }
 
 model CommunityPost {
+  id           String      @id @default(cuid())
+  userId       String?
+  author       String
+  location     String
+  title        String
+  content      String
+  category     String
+  tags         String      // JSON array string
+  likes        Int         @default(0)
+  comments     Int         @default(0)
+  isExpert     Boolean     @default(false)
+  image        String?
+  createdAt    DateTime    @default(now())
+  likesList    PostLike[]
+  commentsList Comment[]
+}
+
+model PostLike {
   id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
   userId    String?
   author    String
-  location  String
-  title     String
   content   String
-  category  String
-  tags      String   // JSON array string
-  likes     Int      @default(0)
-  comments  Int      @default(0)
-  isExpert  Boolean  @default(false)
-  image     String?
   createdAt DateTime @default(now())
+
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model MarketPrice {
@@ -78,15 +103,16 @@ model MarketPrice {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime   @default(now())
   accounts      Account[]
   sessions      Session[]
+  likes         PostLike[]
 }
 
 model Account {
@@ -124,12 +150,6 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model RateLimit {
-  ip        String   @id
-  count     Int
-  expiresAt DateTime
-}
-
 model OtpVerification {
   id        String   @id @default(cuid())
   email     String
@@ -138,3 +158,10 @@ model OtpVerification {
   createdAt DateTime @default(now())
 }
 
+model RateLimit {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  count     Int      @default(1)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
