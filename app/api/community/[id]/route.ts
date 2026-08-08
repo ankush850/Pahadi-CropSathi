@@ -41,19 +41,68 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const user = await verifyToken(req);
+  const { id: postId } = await params;
 
   try {
-    const post = await prisma.communityPost.update({
-      where: { id },
-      data: {
-        likes: { increment: 1 }
-      }
+    const post = await prisma.communityPost.findUnique({
+      where: { id: postId }
     });
 
-    return NextResponse.json({ likes: post.likes }, { status: 200 });
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    if (user) {
+      // Check if user already liked the post
+      const existingLike = await prisma.postLike.findUnique({
+        where: {
+          postId_userId: {
+            postId,
+            userId: user.id
+          }
+        }
+      });
+
+      if (existingLike) {
+        // Toggle UNLIKE (Remove 1 like)
+        await prisma.postLike.delete({
+          where: { id: existingLike.id }
+        });
+
+        const updatedPost = await prisma.communityPost.update({
+          where: { id: postId },
+          data: { likes: Math.max(0, post.likes - 1) }
+        });
+
+        return NextResponse.json({ likes: updatedPost.likes, isLiked: false }, { status: 200 });
+      } else {
+        // Toggle LIKE (Add 1 like per user)
+        await prisma.postLike.create({
+          data: {
+            postId,
+            userId: user.id
+          }
+        });
+
+        const updatedPost = await prisma.communityPost.update({
+          where: { id: postId },
+          data: { likes: post.likes + 1 }
+        });
+
+        return NextResponse.json({ likes: updatedPost.likes, isLiked: true }, { status: 200 });
+      }
+    } else {
+      // Unauthenticated guest user fallback increment
+      const updatedPost = await prisma.communityPost.update({
+        where: { id: postId },
+        data: { likes: post.likes + 1 }
+      });
+
+      return NextResponse.json({ likes: updatedPost.likes, isLiked: true }, { status: 200 });
+    }
   } catch (error) {
-    console.error("Failed to like post:", error);
-    return NextResponse.json({ error: "Failed to like post" }, { status: 500 });
+    console.error("Failed to process like:", error);
+    return NextResponse.json({ error: "Failed to update like status" }, { status: 500 });
   }
 }

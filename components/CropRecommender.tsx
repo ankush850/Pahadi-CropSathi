@@ -140,10 +140,10 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
           </div>
           <h2 className="text-xl md:text-2xl font-bold text-cement-900 flex items-center gap-2">
             <Sprout className="w-6 h-6 text-green-600" />
-            Soil-Based Crop Recommender
+            {t('cropRecommenderTitle')}
           </h2>
           <p className="text-xs md:text-sm text-cement-500 mt-1">
-            Input soil nutrients (N-P-K), pH, and climate parameters to predict the most suitable crop for your land.
+            {t('cropRecommenderDesc')}
           </p>
         </div>
 
@@ -153,7 +153,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
           className="inline-flex items-center gap-2 px-3.5 py-2 bg-cement-50 hover:bg-green-50 text-cement-700 hover:text-green-700 border border-cement-200 hover:border-green-300 rounded-xl text-xs font-medium transition-colors disabled:opacity-50 self-start md:self-auto"
         >
           <CloudSun className={`w-4 h-4 text-green-600 ${fetchingWeather ? 'animate-spin' : ''}`} />
-          {fetchingWeather ? 'Detecting...' : 'Auto-fill Weather Data'}
+          {fetchingWeather ? 'Detecting...' : t('autoFillWeather')}
         </button>
       </div>
 
@@ -165,11 +165,11 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
           <div className="bg-cement-50/70 p-4 rounded-xl border border-cement-100">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-cement-500 mb-3 flex items-center gap-1.5">
               <TestTube className="w-4 h-4 text-amber-600" />
-              Soil Nutrient Profile (N - P - K)
+              {t('soilNutrientProfile')}
             </h3>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label htmlFor="rec-input-N" className="block text-xs font-medium text-cement-700 mb-1">Nitrogen (N)</label>
+                <label htmlFor="rec-input-N" className="block text-xs font-medium text-cement-700 mb-1">{t('nitrogen')}</label>
                 <input
                   id="rec-input-N"
                   type="number"
@@ -183,7 +183,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label htmlFor="rec-input-P" className="block text-xs font-medium text-cement-700 mb-1">Phosphorus (P)</label>
+                <label htmlFor="rec-input-P" className="block text-xs font-medium text-cement-700 mb-1">{t('phosphorus')}</label>
                 <input
                   id="rec-input-P"
                   type="number"
@@ -197,7 +197,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label htmlFor="rec-input-K" className="block text-xs font-medium text-cement-700 mb-1">Potassium (K)</label>
+                <label htmlFor="rec-input-K" className="block text-xs font-medium text-cement-700 mb-1">{t('potassium')}</label>
                 <input
                   id="rec-input-K"
                   type="number"
@@ -217,11 +217,11 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
           <div className="bg-cement-50/70 p-4 rounded-xl border border-cement-100">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-cement-500 mb-3 flex items-center gap-1.5">
               <Thermometer className="w-4 h-4 text-blue-600" />
-              Climate & Soil Properties
+              {t('climateProperties')}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="rec-input-temp" className="block text-xs font-medium text-cement-700 mb-1">Temperature (°C)</label>
+                <label htmlFor="rec-input-temp" className="block text-xs font-medium text-cement-700 mb-1">{t('temp')}</label>
                 <input
                   id="rec-input-temp"
                   type="number"
@@ -236,7 +236,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label htmlFor="rec-input-humidity" className="block text-xs font-medium text-cement-700 mb-1">Humidity (%)</label>
+                <label htmlFor="rec-input-humidity" className="block text-xs font-medium text-cement-700 mb-1">{t('humidity')}</label>
                 <input
                   id="rec-input-humidity"
                   type="number"
@@ -251,7 +251,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label htmlFor="rec-input-ph" className="block text-xs font-medium text-cement-700 mb-1">Soil pH (0 - 14)</label>
+                <label htmlFor="rec-input-ph" className="block text-xs font-medium text-cement-700 mb-1">{t('soilPh')}</label>
                 <input
                   id="rec-input-ph"
                   type="number"
@@ -266,7 +266,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 />
               </div>
               <div>
-                <label htmlFor="rec-input-rainfall" className="block text-xs font-medium text-cement-700 mb-1">Annual Rainfall (mm)</label>
+                <label htmlFor="rec-input-rainfall" className="block text-xs font-medium text-cement-700 mb-1">{t('rainfall')}</label>
                 <input
                   id="rec-input-rainfall"
                   type="number"
@@ -298,7 +298,7 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Predict Optimal Crop
+                  {t('predictCrop')}
                 </>
               )}
             </button>
@@ -395,13 +395,13 @@ export const CropRecommender: React.FC<CropRecommenderProps> = ({ lang }) => {
                 <Sprout className="w-10 h-10" />
               </div>
               <h4 className="text-base font-semibold text-cement-800 mb-1">
-                No Prediction Yet
+                {t('noPredictionYet')}
               </h4>
               <p className="text-xs text-cement-500 max-w-xs mb-4">
-                Fill in your soil N-P-K parameters and click <strong>"Predict Optimal Crop"</strong> to run the Gaussian Naive Bayes ML model.
+                {t('fillParamsDesc')}
               </p>
               <div className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
-                <span>Model accuracy: 99.3%</span>
+                <span>{t('modelAccuracy')}: 99.3%</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </div>
             </div>

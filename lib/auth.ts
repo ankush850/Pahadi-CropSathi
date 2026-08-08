@@ -17,7 +17,7 @@ export async function verifyToken(req: NextRequest) {
   try {
     const nextAuthToken = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
     if (nextAuthToken && nextAuthToken.sub) {
-      return { id: nextAuthToken.sub, email: nextAuthToken.email };
+      return { id: nextAuthToken.sub, email: nextAuthToken.email, name: nextAuthToken.name };
     }
   } catch (error) {
     // Ignore and fallback to custom JWT
@@ -38,7 +38,7 @@ export async function verifyToken(req: NextRequest) {
     // Check if user still exists in the DB
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, createdAt: true } // Exclude password
+      select: { id: true, email: true, name: true, createdAt: true } // Exclude password
     });
 
     if (!user) return null;

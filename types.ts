@@ -1,4 +1,4 @@
-export type Language = 'en' | 'hi' | 'pa' | 'ta' | 'te' | 'mr';
+export type Language = 'en' | 'hi' | 'pah' | 'pa' | 'ta' | 'te' | 'mr';
 
 export interface WeatherData {
   temp: number;
@@ -65,4 +65,30 @@ export interface RegionAnalysis {
   overallRating: 'Excellent' | 'Good' | 'Average' | 'Poor';
   areaSize?: string;
   coordinates?: string;
+}
+
+export interface Comment {
+  id: string;
+  postId: string;
+  userId?: string;
+  author: string;
+  content: string;
+  date: string;
+}
+
+export interface CommunityPost {
+  id: string;
+  userId?: string;
+  author: string;
+  location: string;
+  title: string;
+  content: string;
+  category: string;
+  tags: string[];
+  likes: number;
+  comments: number;
+  isExpert?: boolean;
+  isLiked?: boolean;
+  image?: string;
+  date: string;
 }

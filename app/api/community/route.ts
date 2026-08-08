@@ -41,8 +41,15 @@ const initialSeedPosts = [
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await verifyToken(req);
+
     let posts = await prisma.communityPost.findMany({
       orderBy: { createdAt: 'desc' },
+      include: user ? {
+        likesList: {
+          where: { userId: user.id }
+        }
+      } : undefined
     });
 
     // Seed if empty
@@ -55,11 +62,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const formattedPosts = posts.map(post => ({
-      ...post,
-      tags: JSON.parse(post.tags || '[]'),
-      date: post.createdAt.toISOString().split('T')[0]
-    }));
+    const formattedPosts = posts.map(post => {
+      const p = post as any;
+      const isLiked = user && p.likesList ? p.likesList.length > 0 : false;
+      return {
+        ...post,
+        isLiked,
+        tags: JSON.parse(post.tags || '[]'),
+        date: post.createdAt.toISOString().split('T')[0]
+      };
+    });
 
     return NextResponse.json(formattedPosts);
   } catch (error) {

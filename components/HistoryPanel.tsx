@@ -80,7 +80,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({ lang }) => {
         <div>
           <h1 className="text-3xl font-bold text-cement-900 mb-2 flex items-center gap-3">
             <History className="w-8 h-8 text-green-600" />
-            Scan History
+            {t('history')}
           </h1>
           <p className="text-cement-600">Review all your previous crop health analyses and diagnostic records</p>
         </div>

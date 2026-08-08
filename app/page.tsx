@@ -6,10 +6,9 @@ import { ImageUpload } from '../components/ImageUpload';
 import { AnalysisResults } from '../components/AnalysisResults';
 import dynamic from 'next/dynamic';
 const LocationPanel = dynamic(() => import('../components/LocationPanel').then(mod => mod.LocationPanel), { ssr: false });
-import { SoilCrops } from '../components/SoilCrops';
-import { CropRecommender } from '../components/CropRecommender';
-import { ArecanutDiagnostic } from '../components/ArecanutDiagnostic';
-import { CropDetectionScanner } from '../components/CropDetectionScanner';
+import { UnifiedSoilSuite } from '../components/UnifiedSoilSuite';
+import { UnifiedPlanningSuite } from '../components/UnifiedPlanningSuite';
+import { UnifiedHealthSuite } from '../components/UnifiedHealthSuite';
 import { ChatBot } from '../components/ChatBot';
 import { Modal } from '../components/Modal';
 import { Market } from '../components/Market';
@@ -29,6 +28,18 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lang, setLang] = useState<Language>('en');
+  
+  React.useEffect(() => {
+    const saved = localStorage.getItem('preferred_language') as Language;
+    if (saved) {
+      setLang(saved);
+    }
+  }, []);
+
+  const handleLangChange = useCallback((newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('preferred_language', newLang);
+  }, []);
   
   // Feature Modal State
   const [selectedFeature, setSelectedFeature] = useState<FeaturePlaceholder | null>(null);
@@ -165,12 +176,11 @@ export default function App() {
       default:
         return (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Main Section: Soil, Recommender, Arecanut & Field Weed Scanner */}
-            <div className="space-y-6 animate-fade-in-up">
-               <SoilCrops analysis={analysis} lang={lang} />
-               <CropRecommender lang={lang} />
-               <ArecanutDiagnostic lang={lang} />
-               <CropDetectionScanner lang={lang} />
+            {/* Reorganized Categorized Suites with Tab/Carousel Controls */}
+            <div className="space-y-8 animate-fade-in-up">
+               <UnifiedSoilSuite lang={lang} analysis={analysis} />
+               <UnifiedPlanningSuite lang={lang} />
+               <UnifiedHealthSuite lang={lang} />
             </div>
           </main>
         );
@@ -198,7 +208,7 @@ export default function App() {
       `}</style>
       <Header 
         currentLang={lang} 
-        onLangChange={setLang} 
+        onLangChange={handleLangChange} 
         currentPage={currentPage}
         onPageChange={setCurrentPage}
       />

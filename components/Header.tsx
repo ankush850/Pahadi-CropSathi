@@ -21,11 +21,12 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
 
   const languages: { code: Language; label: string }[] = [
     { code: 'en', label: 'English' },
-    { code: 'hi', label: 'हिंदी' },
-    { code: 'pa', label: 'ਪੰਜਾਬੀ' },
-    { code: 'ta', label: 'தமிழ்' },
-    { code: 'te', label: 'తెలుగు' },
-    { code: 'mr', label: 'मराठी' },
+    { code: 'hi', label: 'हिंदी (Hindi)' },
+    { code: 'pah', label: 'गढ़वाली / कुमाऊँनी (Pahadi)' },
+    { code: 'pa', label: 'ਪੰਜਾਬੀ (Punjabi)' },
+    { code: 'ta', label: 'தமிழ் (Tamil)' },
+    { code: 'te', label: 'తెలుగు (Telugu)' },
+    { code: 'mr', label: 'मराठी (Marathi)' },
   ];
 
   const t = (key: string) => getTranslation(currentLang, key);
@@ -92,7 +93,7 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
                 currentPage === 'history' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
               }`}
             >
-              History
+              {t('history')}
             </button>
             <button 
               onClick={() => onPageChange('market')}
@@ -185,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
               onClick={() => { onPageChange('history'); setMobileMenuOpen(false); }}
               className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'history' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
             >
-              History
+              {t('history')}
             </button>
             <button
               onClick={() => { onPageChange('market'); setMobileMenuOpen(false); }}

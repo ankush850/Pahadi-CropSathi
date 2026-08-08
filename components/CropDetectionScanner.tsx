@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Scan, Upload, Sparkles, AlertTriangle, ShieldCheck, Bug, RefreshCw, Scissors, Layers, CheckCircle2 } from 'lucide-react';
 import { Language } from '../types';
+import { getTranslation } from '../utils/translations';
 
 interface CropDetectionScannerProps {
   lang: Language;
@@ -20,6 +21,8 @@ interface CropDetectionResult {
 }
 
 export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang }) => {
+  const t = (key: string) => getTranslation(lang, key);
+
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CropDetectionResult | null>(null);
@@ -142,42 +145,42 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
         </div>
         <h2 className="text-xl md:text-2xl font-bold text-cement-900 flex items-center gap-2">
           <Scan className="w-6 h-6 text-green-600" />
-          Field Crop & Weed Density Detector
+          {t('fieldWeedTitle')}
         </h2>
         <p className="text-xs md:text-sm text-cement-500 mt-1">
-          Upload top-down field or garden photos to analyze Crop Canopy %, Weed Infestation %, Bare Soil ratio, and target weed eradication strategies.
+          {t('fieldWeedDesc')}
         </p>
       </div>
 
       {/* Quick Demo Presets */}
       <div className="mb-6">
         <span className="block text-xs font-semibold text-cement-600 uppercase tracking-wider mb-2">
-          Quick Field Demo Presets (Or Upload Field Photo Below):
+          {t('quickFieldDemo')}
         </span>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => handleDemoPreset('sugarbeet')}
             className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-800 border border-green-200 rounded-lg text-xs font-medium transition-colors"
           >
-            🌱 Sugarbeet Plot (24% Weeds)
+            🌱 {t('sugarbeetPlot')}
           </button>
           <button
             onClick={() => handleDemoPreset('carrot')}
             className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-medium transition-colors"
           >
-            🥕 Carrot Patch (41% Weeds)
+            🥕 {t('carrotPatch')}
           </button>
           <button
             onClick={() => handleDemoPreset('clean')}
             className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-medium transition-colors"
           >
-            🌾 Clean Wheat Canopy (5% Weeds)
+            🌾 {t('cleanWheat')}
           </button>
           <button
             onClick={() => handleDemoPreset('weedy')}
             className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-800 border border-red-200 rounded-lg text-xs font-medium transition-colors"
           >
-            ⚠️ Heavy Infestation (55% Weeds)
+            ⚠️ {t('heavyInfestation')}
           </button>
         </div>
       </div>
@@ -205,11 +208,11 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
                   <Upload className="w-6 h-6" />
                 </div>
                 <p className="text-xs font-medium text-cement-700 mb-1">
-                  Upload Top-Down Garden / Field Image
+                  {t('uploadFieldImage')}
                 </p>
                 <p className="text-[11px] text-cement-400 mb-4">PNG, JPG, or WEBP up to 10MB</p>
                 <label className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-sm">
-                  Browse Field Image
+                  {t('browseFieldImage')}
                   <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                 </label>
               </>
@@ -218,7 +221,7 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
             {loading && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center text-green-700 text-xs font-medium gap-2">
                 <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-                Analyzing Field Canopy & Weed Density...
+                Analyzing Field & Weed Infestation...
               </div>
             )}
           </div>
@@ -231,72 +234,57 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
           )}
         </div>
 
-        {/* Results Card */}
-        <div className="lg:col-span-7">
+        {/* Results Area */}
+        <div className="lg:col-span-7 flex flex-col">
           {result ? (
-            <div className="bg-gradient-to-br from-green-50/60 to-emerald-50/60 border border-green-200/80 rounded-2xl p-6 space-y-5 animate-fade-in">
-              {/* Canopy Breakdown Metrics */}
-              <div>
-                <h4 className="text-xs font-bold text-cement-800 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-green-600" />
-                  Field Canopy Ratio Breakdown
+            <div className="bg-gradient-to-br from-green-50 to-teal-50 border border-green-200 rounded-2xl p-6 flex-1 space-y-4 animate-fade-in">
+              {/* Coverage Breakdown */}
+              <div className="bg-white/90 backdrop-blur border border-green-200/60 rounded-xl p-4 space-y-3">
+                <h4 className="text-xs font-bold text-cement-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-green-600" /> Field Area Density Breakdown:
                 </h4>
-
-                <div className="space-y-2.5 bg-white/90 backdrop-blur border border-green-200/60 rounded-xl p-4">
-                  {/* Crop Coverage */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1 font-medium">
-                      <span className="text-green-800 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Healthy Crop Cover:
-                      </span>
-                      <span className="font-bold text-green-700">{result.cropCoverage}%</span>
-                    </div>
-                    <div className="w-full bg-cement-100 rounded-full h-2 overflow-hidden">
-                      <div className="bg-green-600 h-full rounded-full transition-all duration-500" style={{ width: `${result.cropCoverage}%` }} />
-                    </div>
+                
+                {/* Visual Bar */}
+                <div className="h-4 bg-cement-200 rounded-full overflow-hidden flex text-[10px] font-bold text-white text-center">
+                  <div style={{ width: `${result.cropCoverage}%` }} className="bg-green-600 flex items-center justify-center" title="Crop Coverage">
+                    {result.cropCoverage > 10 && `${result.cropCoverage}%`}
                   </div>
-
-                  {/* Weed Infestation */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1 font-medium">
-                      <span className="text-red-700 flex items-center gap-1">
-                        <Bug className="w-3.5 h-3.5 text-red-600" /> Weed Infestation:
-                      </span>
-                      <span className="font-bold text-red-700">{result.weedInfestation}%</span>
-                    </div>
-                    <div className="w-full bg-cement-100 rounded-full h-2 overflow-hidden">
-                      <div className="bg-red-500 h-full rounded-full transition-all duration-500" style={{ width: `${result.weedInfestation}%` }} />
-                    </div>
+                  <div style={{ width: `${result.weedInfestation}%` }} className="bg-red-500 flex items-center justify-center" title="Weed Infestation">
+                    {result.weedInfestation > 10 && `${result.weedInfestation}%`}
                   </div>
-
-                  {/* Bare Soil */}
-                  <div>
-                    <div className="flex justify-between text-xs mb-1 font-medium">
-                      <span className="text-cement-600">Bare Uncovered Soil:</span>
-                      <span className="font-bold text-cement-700">{result.bareSoil}%</span>
-                    </div>
-                    <div className="w-full bg-cement-100 rounded-full h-2 overflow-hidden">
-                      <div className="bg-amber-400 h-full rounded-full transition-all duration-500" style={{ width: `${result.bareSoil}%` }} />
-                    </div>
+                  <div style={{ width: `${result.bareSoil}%` }} className="bg-amber-600 flex items-center justify-center" title="Bare Soil">
+                    {result.bareSoil > 10 && `${result.bareSoil}%`}
                   </div>
+                </div>
+
+                <div className="flex justify-between text-xs pt-1">
+                  <span className="flex items-center gap-1 text-green-700 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> Crop Canopy ({result.cropCoverage}%)
+                  </span>
+                  <span className="flex items-center gap-1 text-red-700 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" /> Weed Infestation ({result.weedInfestation}%)
+                  </span>
+                  <span className="flex items-center gap-1 text-amber-800 font-semibold">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-600 inline-block" /> Bare Soil ({result.bareSoil}%)
+                  </span>
                 </div>
               </div>
 
-              {/* Cultivated Crops Identified */}
+              {/* Detected Crops */}
               {result.detectedCrops && result.detectedCrops.length > 0 && (
-                <div className="text-xs">
-                  <span className="font-bold text-cement-800 mr-2">Cultivated Crops Identified:</span>
-                  <span className="inline-flex flex-wrap gap-1.5 mt-1">
+                <div className="bg-white/90 backdrop-blur border border-green-200/60 rounded-xl p-3.5 text-xs">
+                  <strong className="text-green-900 block mb-1">Identified Cultivated Crops:</strong>
+                  <div className="flex flex-wrap gap-1.5">
                     {result.detectedCrops.map((crop, idx) => (
-                      <span key={idx} className="px-2.5 py-0.5 bg-white border border-green-200 text-green-800 rounded-md font-semibold">
+                      <span key={idx} className="px-2.5 py-1 bg-green-100 text-green-800 font-medium rounded-lg">
                         {crop}
                       </span>
                     ))}
-                  </span>
+                  </div>
                 </div>
               )}
 
-              {/* Identified Weeds List */}
+              {/* Detected Weeds */}
               {result.detectedWeeds && result.detectedWeeds.length > 0 && (
                 <div className="bg-white/90 backdrop-blur border border-red-200/60 rounded-xl p-4 text-xs space-y-2">
                   <h5 className="font-bold text-red-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -333,7 +321,7 @@ export const CropDetectionScanner: React.FC<CropDetectionScannerProps> = ({ lang
               <div className="p-4 bg-white rounded-2xl shadow-sm text-green-600 mb-3 border border-cement-100">
                 <Scan className="w-8 h-8" />
               </div>
-              <h4 className="text-sm font-semibold text-cement-800 mb-1">No Field Image Analyzed</h4>
+              <h4 className="text-sm font-semibold text-cement-800 mb-1">{t('noFieldImage')}</h4>
               <p className="text-xs text-cement-500 max-w-xs">
                 Upload an aerial/top-down field photo or select a quick demo preset above to run the weed density detector.
               </p>
