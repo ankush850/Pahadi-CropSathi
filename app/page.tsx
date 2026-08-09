@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { Header } from '../components/Header';
+import { LandingPage } from '../components/LandingPage';
 import { ImageUpload } from '../components/ImageUpload';
 import { AnalysisResults } from '../components/AnalysisResults';
 import dynamic from 'next/dynamic';
@@ -16,23 +17,51 @@ import { Community } from '../components/Community';
 import { HistoryPanel } from '../components/HistoryPanel';
 import { useToast } from '../components/hooks/useToast';
 import { ToastContainer } from '../components/ui/Toast';
+import { useRouter } from 'next/navigation';
 import { PlantAnalysis, FeaturePlaceholder, Language } from '../types';
 import ReactMarkdown from 'react-markdown';
 import { FileJson, FileText, RefreshCw } from 'lucide-react';
 import { getTranslation } from '../utils/translations';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'history' | 'market' | 'community'>('dashboard');
+  const router = useRouter();
+  const [currentPage, setCurrentPage] = useState<'landing' | 'dashboard' | 'history' | 'market' | 'community'>('landing');
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<PlantAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lang, setLang] = useState<Language>('en');
-  
+  const { toasts, addToast, removeToast } = useToast();
+
+  const handlePageChange = useCallback((page: 'landing' | 'dashboard' | 'history' | 'market' | 'community') => {
+    if (page === 'landing') {
+      setCurrentPage('landing');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      addToast('Please sign in to access application features', 'info');
+      router.push('/login');
+      return;
+    }
+
+    setCurrentPage(page);
+  }, [router, addToast]);
+
   React.useEffect(() => {
     const saved = localStorage.getItem('preferred_language') as Language;
     if (saved) {
       setLang(saved);
+    }
+
+    // Check query params if coming back after login
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab') as 'dashboard' | 'history' | 'market' | 'community' | null;
+    const token = localStorage.getItem('token');
+    
+    if (token && tabParam && ['dashboard', 'history', 'market', 'community'].includes(tabParam)) {
+      setCurrentPage(tabParam);
     }
   }, []);
 
@@ -45,8 +74,6 @@ export default function App() {
   const [selectedFeature, setSelectedFeature] = useState<FeaturePlaceholder | null>(null);
   const [featureReport, setFeatureReport] = useState<string>('');
   const [isFeatureLoading, setIsFeatureLoading] = useState(false);
-  
-  const { toasts, addToast, removeToast } = useToast();
 
   const t = useCallback((key: string) => getTranslation(lang, key), [lang]);
 
@@ -167,12 +194,15 @@ export default function App() {
 
   const renderedContent = useMemo(() => {
     switch (currentPage) {
+      case 'landing':
+        return <LandingPage lang={lang} onNavigate={handlePageChange} onLangChange={handleLangChange} />;
       case 'history':
         return <HistoryPanel lang={lang} />;
       case 'market':
         return <Market lang={lang} />;
       case 'community':
         return <Community lang={lang} />;
+      case 'dashboard':
       default:
         return (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -185,7 +215,7 @@ export default function App() {
           </main>
         );
     }
-  }, [currentPage, lang, analysis]);
+  }, [currentPage, lang, analysis, handleLangChange, handlePageChange]);
 
   return (
     <div className="min-h-screen bg-cement-50 pb-20 font-sans text-cement-900">
@@ -206,12 +236,14 @@ export default function App() {
           }
         }
       `}</style>
-      <Header 
-        currentLang={lang} 
-        onLangChange={handleLangChange} 
-        currentPage={currentPage}
-        onPageChange={setCurrentPage}
-      />
+      {currentPage !== 'landing' && (
+        <Header 
+          currentLang={lang} 
+          onLangChange={handleLangChange} 
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {renderedContent}
 

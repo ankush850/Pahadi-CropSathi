@@ -16,7 +16,7 @@ export function RouteGuard({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   async function authCheck(url: string) {
-    const publicPaths = ['/login', '/register'];
+    const publicPaths = ['/', '/login', '/register'];
     const path = url.split('?')[0];
 
     // If it's a public path, always allow it
