@@ -10,8 +10,8 @@ import { useRouter } from 'next/navigation';
 interface HeaderProps {
   currentLang: Language;
   onLangChange: (lang: Language) => void;
-  currentPage: 'dashboard' | 'history' | 'market' | 'community';
-  onPageChange: (page: 'dashboard' | 'history' | 'market' | 'community') => void;
+  currentPage: 'landing' | 'dashboard' | 'history' | 'market' | 'community';
+  onPageChange: (page: 'landing' | 'dashboard' | 'history' | 'market' | 'community') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, currentPage, onPageChange }) => {
@@ -59,7 +59,10 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
     <header className="sticky top-0 z-50 bg-white border-b border-cement-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => onPageChange('landing')}
+          >
             <div className="w-8 h-8 rounded-lg overflow-hidden shadow-sm border border-cement-200">
               <img 
                 src="./1000098217.png" 
@@ -79,6 +82,14 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
           </div>
           
           <nav className="hidden md:flex space-x-6">
+            <button 
+              onClick={() => onPageChange('landing')}
+              className={`font-medium transition-colors ${
+                currentPage === 'landing' ? 'text-green-600 border-b-2 border-green-600 pb-1' : 'text-cement-500 hover:text-green-600'
+              }`}
+            >
+              Overview
+            </button>
             <button 
               onClick={() => onPageChange('dashboard')}
               className={`font-medium transition-colors ${
@@ -138,31 +149,38 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
             </button>
             
-            <div className="relative group hidden sm:flex">
-              <div className="flex items-center gap-2 cursor-pointer">
-                <div className="h-8 w-8 rounded-full bg-cement-200 flex items-center justify-center border border-cement-300">
-                  <User className="w-5 h-5 text-cement-500" />
+            {user ? (
+              <div className="relative group hidden sm:flex">
+                <div className="flex items-center gap-2 cursor-pointer">
+                  <div className="h-8 w-8 rounded-full bg-cement-200 flex items-center justify-center border border-cement-300">
+                    <User className="w-5 h-5 text-cement-500" />
+                  </div>
+                  <span className="text-sm font-medium text-cement-700 max-w-[100px] truncate">{user.email}</span>
                 </div>
-                {user && <span className="text-sm font-medium text-cement-700 max-w-[100px] truncate">{user.email}</span>}
-              </div>
-              
-              {/* User Dropdown */}
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-cement-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50 py-1">
-                {user && (
+                
+                {/* User Dropdown */}
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-cement-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-50 py-1">
                   <div className="px-4 py-2 border-b border-cement-100 mb-1">
                     <p className="text-xs text-cement-500">Signed in as</p>
                     <p className="text-sm font-medium text-cement-900 truncate">{user.email}</p>
                   </div>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <button
+                onClick={() => router.push('/login')}
+                className="hidden sm:flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-sm"
+              >
+                Sign In
+              </button>
+            )}
 
             <button 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -176,6 +194,12 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-cement-100 py-3 space-y-2 animate-fade-in">
+            <button
+              onClick={() => { onPageChange('landing'); setMobileMenuOpen(false); }}
+              className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'landing' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
+            >
+              Overview
+            </button>
             <button
               onClick={() => { onPageChange('dashboard'); setMobileMenuOpen(false); }}
               className={`block w-full text-left px-3 py-2 rounded-lg text-base font-medium ${currentPage === 'dashboard' ? 'bg-green-50 text-green-700' : 'text-cement-600'}`}
@@ -200,10 +224,19 @@ export const Header: React.FC<HeaderProps> = ({ currentLang, onLangChange, curre
             >
               {t('community')}
             </button>
-            {user && (
+            {user ? (
               <div className="pt-2 border-t border-cement-100 flex items-center justify-between px-3">
                 <span className="text-xs text-cement-500 truncate">{user.email}</span>
                 <button onClick={handleLogout} className="text-xs font-semibold text-red-600">Logout</button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-cement-100 px-3">
+                <button 
+                  onClick={() => router.push('/login')} 
+                  className="w-full text-center py-2 text-sm font-semibold text-white bg-green-600 rounded-lg"
+                >
+                  Sign In
+                </button>
               </div>
             )}
           </div>

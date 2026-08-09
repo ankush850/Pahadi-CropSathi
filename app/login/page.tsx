@@ -31,7 +31,7 @@ export default function LoginPage() {
         setError(data.error || 'Login failed');
       } else {
         localStorage.setItem('token', data.token);
-        router.push('/');
+        router.push('/?tab=dashboard');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
